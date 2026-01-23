@@ -1,12 +1,12 @@
 import { Card } from "@/components/ui/card";
 
-export default function StatsCard({ title, value, icon: Icon, trend, color = "indigo" }) {
+export default function StatsCard({ title, value, icon: Icon, trend, color = "sky" }) {
   const colors = {
-    indigo: "bg-indigo-500/10 text-indigo-600",
+    sky: "bg-sky-500/10 text-sky-600",
     emerald: "bg-emerald-500/10 text-emerald-600",
     amber: "bg-amber-500/10 text-amber-600",
     rose: "bg-rose-500/10 text-rose-600",
-    purple: "bg-purple-500/10 text-purple-600"
+    blue: "bg-blue-900/10 text-blue-900"
   };
 
   return (
