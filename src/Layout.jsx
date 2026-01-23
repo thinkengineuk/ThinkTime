@@ -71,7 +71,7 @@ export default function Layout({ children, currentPageName }) {
                   <Ticket className="w-4 h-4 text-white" />
                 </div>
                 <span className="font-bold bg-gradient-to-r from-sky-500 to-blue-900 bg-clip-text text-transparent hidden sm:block">
-                  USC
+                  ThinkSupport
                 </span>
               </Link>
 
