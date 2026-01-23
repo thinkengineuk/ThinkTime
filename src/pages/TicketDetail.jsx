@@ -73,7 +73,8 @@ export default function TicketDetail() {
       author_role: user.user_type === "client" ? "client" : "agent",
       body: data.body,
       is_internal: data.isInternal,
-      source: "web"
+      source: "web",
+      attachments: data.attachments || []
     }),
     onSuccess: () => {
       queryClient.invalidateQueries(["comments", ticketId]);
@@ -113,7 +114,7 @@ export default function TicketDetail() {
   const isAgent = user?.user_type === "agent" || user?.user_type === "super_admin" || user?.role === "admin";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {/* Back Button */}
         <Link 
@@ -128,7 +129,7 @@ export default function TicketDetail() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Ticket Header */}
-            <Card className="p-6">
+            <Card className="p-6 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
@@ -150,7 +151,7 @@ export default function TicketDetail() {
             </Card>
 
             {/* Comments */}
-            <Card className="p-6">
+            <Card className="p-6 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
               <h2 className="font-semibold text-slate-900 mb-4">Conversation</h2>
               <CommentThread comments={comments} currentUserEmail={user?.email} />
             </Card>
@@ -167,7 +168,7 @@ export default function TicketDetail() {
           <div className="space-y-6">
             {/* Actions */}
             {isAgent && (
-              <Card className="p-4">
+              <Card className="p-4 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
                 <h3 className="text-sm font-semibold text-slate-700 mb-3">Actions</h3>
                 <div className="space-y-3">
                   <Select 
@@ -240,7 +241,7 @@ export default function TicketDetail() {
             )}
 
             {/* Details */}
-            <Card className="p-4">
+            <Card className="p-4 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
               <h3 className="text-sm font-semibold text-slate-700 mb-3">Details</h3>
               <div className="space-y-3 text-sm">
                 <div className="flex items-center gap-2 text-slate-600">
@@ -268,7 +269,7 @@ export default function TicketDetail() {
 
             {/* Assigned Agent */}
             {ticket.assigned_agent_name && (
-              <Card className="p-4">
+              <Card className="p-4 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
                 <h3 className="text-sm font-semibold text-slate-700 mb-3">Assigned To</h3>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">

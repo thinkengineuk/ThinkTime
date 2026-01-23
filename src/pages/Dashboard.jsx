@@ -49,13 +49,22 @@ export default function Dashboard() {
     const newCounter = (org.ticket_counter || 0) + 1;
     const displayId = generateTicketId(org.prefix, newCounter);
 
-    await base44.entities.Ticket.create({
-      ...formData,
+    const ticketData = {
+      subject: formData.subject,
+      description: formData.description,
+      priority: formData.priority,
+      category: formData.category,
+      organization_id: formData.organization_id,
+      client_email: formData.client_email,
+      client_name: formData.client_name,
       display_id: displayId,
       organization_prefix: org.prefix,
       last_activity: new Date().toISOString(),
-      status: "open"
-    });
+      status: "open",
+      attachments: formData.attachments || []
+    };
+
+    await base44.entities.Ticket.create(ticketData);
 
     await base44.entities.Organization.update(org.id, { ticket_counter: newCounter });
     refetch();
@@ -89,14 +98,27 @@ export default function Dashboard() {
     urgent: tickets.filter(t => t.priority === "urgent" && ["open", "pending"].includes(t.status)).length
   };
 
+  const selectedOrgData = organizations.find(o => o.id === selectedOrg);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Support Dashboard</h1>
-            <p className="text-slate-500 text-sm mt-1">Manage tickets across all organizations</p>
+          <div className="flex items-center gap-4">
+            {selectedOrgData?.logo_url && (
+              <img 
+                src={selectedOrgData.logo_url} 
+                alt={selectedOrgData.name} 
+                className="h-10 object-contain"
+              />
+            )}
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Support Dashboard
+              </h1>
+              <p className="text-slate-600 text-sm mt-1">Manage tickets across all organizations</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <OrgSwitcher 
@@ -104,7 +126,10 @@ export default function Dashboard() {
               selectedOrg={selectedOrg}
               onSelect={setSelectedOrg}
             />
-            <Button onClick={() => setCreateOpen(true)}>
+            <Button 
+              onClick={() => setCreateOpen(true)}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30"
+            >
               <Plus className="w-4 h-4 mr-2" />
               New Ticket
             </Button>
@@ -113,16 +138,16 @@ export default function Dashboard() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatsCard title="Open Tickets" value={stats.open} icon={Ticket} color="blue" />
+          <StatsCard title="Open Tickets" value={stats.open} icon={Ticket} color="indigo" />
           <StatsCard title="Pending" value={stats.pending} icon={Clock} color="amber" />
           <StatsCard title="Resolved" value={stats.resolved} icon={CheckCircle} color="emerald" />
-          <StatsCard title="Urgent" value={stats.urgent} icon={AlertTriangle} color="red" />
+          <StatsCard title="Urgent" value={stats.urgent} icon={AlertTriangle} color="rose" />
         </div>
 
         {/* View Toggle */}
         <div className="flex items-center justify-between mb-4">
           <Tabs value={viewMode} onValueChange={setViewMode}>
-            <TabsList className="bg-white border">
+            <TabsList className="bg-white/70 backdrop-blur-sm border border-slate-200/50 shadow-sm">
               <TabsTrigger value="active">Active</TabsTrigger>
               <TabsTrigger value="inactive">Inactive</TabsTrigger>
               <TabsTrigger value="all">All</TabsTrigger>
@@ -148,7 +173,7 @@ export default function Dashboard() {
               <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
             </div>
           ) : filteredTickets.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl border border-slate-100">
+            <div className="text-center py-12 bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-sm">
               <Ticket className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500">No tickets found</p>
             </div>
