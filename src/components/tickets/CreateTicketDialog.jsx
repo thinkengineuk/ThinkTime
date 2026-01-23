@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import AttachmentUploader from "./AttachmentUploader";
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Input } from "@/components/ui/input";
 
 export default function CreateTicketDialog({ 
   open, 
@@ -26,8 +28,19 @@ export default function CreateTicketDialog({
     category: "general",
     organization_id: defaultOrgId || "",
     client_email: clientEmail,
-    client_name: ""
+    client_name: "",
+    assigned_agent_email: "",
+    assigned_agent_name: ""
   });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ["allUsersForTicketCreation"],
+    queryFn: () => base44.entities.User.list(),
+    enabled: !isClient
+  });
+
+  const clientUsers = allUsers.filter(user => user.user_type === "client");
+  const agentUsers = allUsers.filter(user => user.user_type === "agent" || user.user_type === "super_admin" || user.role === "admin");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,7 +54,9 @@ export default function CreateTicketDialog({
       category: "general",
       organization_id: defaultOrgId || "",
       client_email: clientEmail,
-      client_name: ""
+      client_name: "",
+      assigned_agent_email: "",
+      assigned_agent_name: ""
     });
     setAttachments([]);
     onOpenChange(false);
@@ -57,13 +72,13 @@ export default function CreateTicketDialog({
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           {!isClient && organizations?.length > 0 && (
             <div className="space-y-2">
-              <Label>Organization</Label>
+              <Label>Organisation</Label>
               <Select 
                 value={form.organization_id} 
                 onValueChange={(v) => setForm({ ...form, organization_id: v })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select organization" />
+                  <SelectValue placeholder="Select organisation" />
                 </SelectTrigger>
                 <SelectContent>
                   {organizations.map(org => (
@@ -75,25 +90,60 @@ export default function CreateTicketDialog({
           )}
 
           {!isClient && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Client Email *</Label>
-                <Input
-                  type="email"
-                  required
-                  value={form.client_email}
-                  onChange={(e) => setForm({ ...form, client_email: e.target.value })}
-                  placeholder="client@example.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Client Name</Label>
-                <Input
-                  value={form.client_name}
-                  onChange={(e) => setForm({ ...form, client_name: e.target.value })}
-                  placeholder="John Doe"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label>Client *</Label>
+              <Select
+                required
+                value={form.client_email}
+                onValueChange={(email) => {
+                  const selectedClient = clientUsers.find(user => user.email === email);
+                  setForm({
+                    ...form,
+                    client_email: email,
+                    client_name: selectedClient ? selectedClient.full_name : ""
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clientUsers.map(client => (
+                    <SelectItem key={client.email} value={client.email}>
+                      {client.full_name || client.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {!isClient && (
+            <div className="space-y-2">
+              <Label>Assigned Agent</Label>
+              <Select
+                value={form.assigned_agent_email}
+                onValueChange={(email) => {
+                  const selectedAgent = agentUsers.find(user => user.email === email);
+                  setForm({
+                    ...form,
+                    assigned_agent_email: email,
+                    assigned_agent_name: selectedAgent ? selectedAgent.full_name : ""
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select agent (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Unassigned</SelectItem>
+                  {agentUsers.map(agent => (
+                    <SelectItem key={agent.email} value={agent.email}>
+                      {agent.full_name || agent.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 
