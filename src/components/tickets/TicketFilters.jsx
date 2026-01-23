@@ -67,7 +67,7 @@ export default function TicketFilters({
             <SelectValue placeholder="Organization" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Organizations</SelectItem>
+            <SelectItem value="all">All Organisations</SelectItem>
             {organizations.map(org => (
               <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
             ))}
