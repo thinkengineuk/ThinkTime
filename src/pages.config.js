@@ -1,15 +1,17 @@
-import Dashboard from './pages/Dashboard';
-import TicketDetail from './pages/TicketDetail';
 import ClientPortal from './pages/ClientPortal';
+import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
+import TicketDetail from './pages/TicketDetail';
+import Clients from './pages/Clients';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
-    "TicketDetail": TicketDetail,
     "ClientPortal": ClientPortal,
+    "Dashboard": Dashboard,
     "Settings": Settings,
+    "TicketDetail": TicketDetail,
+    "Clients": Clients,
 }
 
 export const pagesConfig = {

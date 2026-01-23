@@ -46,6 +46,7 @@ export default function Layout({ children, currentPageName }) {
 
   const navItems = isAgent ? [
     { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
+    { name: "Clients", icon: User, page: "Clients" },
     { name: "Settings", icon: Settings, page: "Settings" },
   ] : [
     { name: "My Tickets", icon: Ticket, page: "ClientPortal" },
