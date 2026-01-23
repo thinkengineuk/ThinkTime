@@ -53,17 +53,18 @@ export default function Layout({ children, currentPageName }) {
                   userProfile?.user_type === "super_admin" || 
                   user?.role === "admin";
 
+  const adminPages = ["Dashboard", "Clients", "Settings"];
+  const isAdminPage = adminPages.includes(currentPageName);
+  const isClient = user && !isAgent;
+
   // Redirect clients away from admin pages
   useEffect(() => {
     if (isLoadingProfile || !user) return;
     
-    const isClient = !isAgent;
-    const adminPages = ["Dashboard", "Clients", "Settings"];
-    
-    if (isClient && adminPages.includes(currentPageName)) {
+    if (isClient && isAdminPage) {
       window.location.replace(createPageUrl("ClientPortal"));
     }
-  }, [isAgent, currentPageName, isLoadingProfile, user]);
+  }, [isAgent, currentPageName, isLoadingProfile, user, isClient, isAdminPage]);
 
   const navItems = isAgent ? [
     { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
@@ -77,8 +78,8 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.logout();
   };
 
-  // Show loading state while checking user profile to prevent rendering admin pages for clients
-  if (isLoadingProfile) {
+  // Block rendering of admin pages for clients - show loading instead
+  if (isLoadingProfile || (isClient && isAdminPage)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-sky-50/30">
         <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
