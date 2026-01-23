@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,7 +61,7 @@ export default function Layout({ children, currentPageName }) {
     const adminPages = ["Dashboard", "Clients", "Settings"];
     
     if (isClient && adminPages.includes(currentPageName)) {
-      window.location.href = createPageUrl("ClientPortal");
+      window.location.replace(createPageUrl("ClientPortal"));
     }
   }, [isAgent, currentPageName, isLoadingProfile, user]);
 
@@ -75,6 +76,15 @@ export default function Layout({ children, currentPageName }) {
   const handleLogout = () => {
     base44.auth.logout();
   };
+
+  // Show loading state while checking user profile to prevent rendering admin pages for clients
+  if (isLoadingProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-sky-50/30">
+        <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50/30">

@@ -27,28 +27,6 @@ export default function Dashboard() {
     queryFn: () => base44.auth.me()
   });
 
-  const { data: userProfile, isLoading: isLoadingProfile } = useQuery({
-    queryKey: ["userProfile", user?.email],
-    queryFn: async () => {
-      if (!user?.email) return null;
-      const profiles = await base44.entities.User.filter({ email: user.email });
-      return profiles[0];
-    },
-    enabled: !!user?.email
-  });
-
-  // Redirect clients to ClientPortal
-  useEffect(() => {
-    if (isLoadingProfile) return;
-    
-    const isClient = userProfile?.user_type === "client" || 
-                     (user?.role === "user" && !userProfile?.user_type);
-    
-    if (isClient) {
-      window.location.href = "/ClientPortal";
-    }
-  }, [userProfile, user, isLoadingProfile]);
-
   const { data: organizations = [] } = useQuery({
     queryKey: ["organizations"],
     queryFn: () => base44.entities.Organization.list()
