@@ -1,16 +1,16 @@
 import { Card } from "@/components/ui/card";
 
-export default function StatsCard({ title, value, icon: Icon, trend, color = "blue" }) {
+export default function StatsCard({ title, value, icon: Icon, trend, color = "indigo" }) {
   const colors = {
-    blue: "bg-blue-500/10 text-blue-600",
+    indigo: "bg-indigo-500/10 text-indigo-600",
     emerald: "bg-emerald-500/10 text-emerald-600",
     amber: "bg-amber-500/10 text-amber-600",
-    red: "bg-red-500/10 text-red-600",
+    rose: "bg-rose-500/10 text-rose-600",
     purple: "bg-purple-500/10 text-purple-600"
   };
 
   return (
-    <Card className="p-5 hover:shadow-md transition-shadow">
+    <Card className="p-5 hover:shadow-xl transition-shadow bg-white/70 backdrop-blur-sm border-slate-200/50">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-slate-500">{title}</p>

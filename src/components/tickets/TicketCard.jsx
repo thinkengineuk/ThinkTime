@@ -14,7 +14,7 @@ export default function TicketCard({ ticket }) {
 
   return (
     <Link to={createPageUrl(`TicketDetail?id=${ticket.id}`)}>
-      <Card className="p-4 hover:shadow-md transition-all duration-200 cursor-pointer border-l-4 group"
+      <Card className="p-5 hover:shadow-xl transition-all duration-200 cursor-pointer border-l-4 group bg-white/70 backdrop-blur-sm border-slate-200/50"
             style={{ borderLeftColor: ticket.organization_prefix === 'TE' ? '#3B82F6' : '#8B5CF6' }}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
