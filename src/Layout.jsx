@@ -35,7 +35,15 @@ export default function Layout({ children, currentPageName }) {
     queryFn: async () => {
       if (!user?.email) return null;
       const profiles = await base44.entities.User.filter({ email: user.email });
-      return profiles[0];
+      let profile = profiles[0];
+      
+      // Auto-set user_type to "client" if missing
+      if (profile && !profile.user_type) {
+        await base44.entities.User.update(profile.id, { user_type: "client" });
+        profile = { ...profile, user_type: "client" };
+      }
+      
+      return profile;
     },
     enabled: !!user?.email
   });
