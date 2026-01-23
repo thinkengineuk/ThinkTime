@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Send, Lock, Loader2 } from "lucide-react";
+import AttachmentUploader from "./AttachmentUploader";
 
 export default function ReplyComposer({ 
   onSubmit, 
@@ -13,13 +14,15 @@ export default function ReplyComposer({
   const [body, setBody] = useState("");
   const [isInternal, setIsInternal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [attachments, setAttachments] = useState([]);
 
   const handleSubmit = async () => {
     if (!body.trim()) return;
     setLoading(true);
-    await onSubmit({ body, isInternal });
+    await onSubmit({ body, isInternal, attachments });
     setBody("");
     setIsInternal(false);
+    setAttachments([]);
     setLoading(false);
   };
 
@@ -40,6 +43,13 @@ export default function ReplyComposer({
         rows={4}
         className={`resize-none ${isInternal ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-0'}`}
       />
+
+      <div className="mt-3">
+        <AttachmentUploader 
+          attachments={attachments}
+          onAttachmentsChange={setAttachments}
+        />
+      </div>
 
       <div className="flex items-center justify-between mt-3">
         {isAgent ? (

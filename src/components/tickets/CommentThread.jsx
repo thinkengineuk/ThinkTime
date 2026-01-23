@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow, format } from "date-fns";
-import { Lock, Mail, Globe } from "lucide-react";
+import { Lock, Mail, Globe, Link as LinkIcon, Image, FileText } from "lucide-react";
 
 export default function CommentThread({ comments, currentUserEmail }) {
   const getInitials = (name) => {
@@ -66,9 +66,16 @@ export default function CommentThread({ comments, currentUserEmail }) {
                         href={att.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-blue-600"
+                        className="flex items-center gap-1.5 text-xs bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-200 px-2.5 py-1.5 rounded-lg text-blue-700 font-medium transition-all hover:shadow-sm"
                       >
-                        📎 {att.name}
+                        {att.type === "link" ? (
+                          <LinkIcon className="w-3.5 h-3.5" />
+                        ) : att.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                          <Image className="w-3.5 h-3.5" />
+                        ) : (
+                          <FileText className="w-3.5 h-3.5" />
+                        )}
+                        {att.name}
                       </a>
                     ))}
                   </div>

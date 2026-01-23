@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import AttachmentUploader from "./AttachmentUploader";
 
 export default function CreateTicketDialog({ 
   open, 
@@ -17,6 +18,7 @@ export default function CreateTicketDialog({
   clientEmail = ""
 }) {
   const [loading, setLoading] = useState(false);
+  const [attachments, setAttachments] = useState([]);
   const [form, setForm] = useState({
     subject: "",
     description: "",
@@ -30,7 +32,7 @@ export default function CreateTicketDialog({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await onSubmit(form);
+    await onSubmit({ ...form, attachments });
     setLoading(false);
     setForm({
       subject: "",
@@ -41,6 +43,7 @@ export default function CreateTicketDialog({
       client_email: clientEmail,
       client_name: ""
     });
+    setAttachments([]);
     onOpenChange(false);
   };
 
@@ -144,6 +147,14 @@ export default function CreateTicketDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Attachments</Label>
+            <AttachmentUploader 
+              attachments={attachments}
+              onAttachmentsChange={setAttachments}
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
