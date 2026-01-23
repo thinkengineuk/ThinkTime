@@ -14,7 +14,8 @@ export default function Clients() {
 
   const { data: users = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
-    queryFn: () => base44.entities.User.list()
+    queryFn: () => base44.entities.User.list(),
+    refetchInterval: 3000 // Auto-refresh every 3 seconds
   });
 
   const { data: organizations = [], isLoading: isLoadingOrgs } = useQuery({
@@ -56,7 +57,7 @@ export default function Clients() {
     const user = users.find(u => u.id === userId);
     updateUserMutation.mutate({ 
       userId, 
-      user_type: user.user_type,
+      user_type: user.user_type || "client",
       organization_id: orgId,
       organization_name: org?.name
     });
