@@ -117,7 +117,7 @@ export default function Dashboard() {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-sky-500 to-blue-900 bg-clip-text text-transparent">
                 Support Dashboard
               </h1>
-              <p className="text-slate-600 text-sm mt-1">Manage tickets across all organizations</p>
+              <p className="text-slate-600 text-sm mt-1">Manage tickets across all organisations</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
