@@ -24,11 +24,12 @@ export default function Clients() {
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: async ({ userId, user_type, organization_id, organization_name }) => {
+    mutationFn: async ({ userId, user_type, organization_id, organization_name, company_name }) => {
       await base44.entities.User.update(userId, { 
         user_type,
         organization_id,
-        organization_name
+        organization_name,
+        company_name
       });
     },
     onSuccess: () => {
@@ -39,7 +40,8 @@ export default function Clients() {
   const filteredUsers = users.filter(user =>
     user.email?.toLowerCase().includes(search.toLowerCase()) ||
     user.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    user.organization_name?.toLowerCase().includes(search.toLowerCase())
+    user.organization_name?.toLowerCase().includes(search.toLowerCase()) ||
+    user.company_name?.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleUpdateUserType = (userId, newUserType) => {
@@ -48,7 +50,8 @@ export default function Clients() {
       userId, 
       user_type: newUserType,
       organization_id: user.organization_id,
-      organization_name: user.organization_name
+      organization_name: user.organization_name,
+      company_name: user.company_name
     });
   };
 
@@ -59,7 +62,19 @@ export default function Clients() {
       userId, 
       user_type: user.user_type || "client",
       organization_id: orgId,
-      organization_name: org?.name
+      organization_name: org?.name,
+      company_name: user.company_name
+    });
+  };
+
+  const handleUpdateCompanyName = (userId, companyName) => {
+    const user = users.find(u => u.id === userId);
+    updateUserMutation.mutate({ 
+      userId, 
+      user_type: user.user_type || "client",
+      organization_id: user.organization_id,
+      organization_name: user.organization_name,
+      company_name: companyName
     });
   };
 
@@ -108,6 +123,7 @@ export default function Clients() {
               <TableRow>
                 <TableHead>Email</TableHead>
                 <TableHead>Full Name</TableHead>
+                <TableHead>Company Name</TableHead>
                 <TableHead>Base44 Role</TableHead>
                 <TableHead>Organization</TableHead>
                 <TableHead>User Type</TableHead>
@@ -116,13 +132,13 @@ export default function Clients() {
             <TableBody>
               {isLoadingUsers || isLoadingOrgs ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto" />
                   </TableCell>
                 </TableRow>
               ) : filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-slate-500">
+                  <TableCell colSpan={6} className="text-center py-8 text-slate-500">
                     No users found. Invite users from the Base44 dashboard.
                   </TableCell>
                 </TableRow>
@@ -131,6 +147,15 @@ export default function Clients() {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.email}</TableCell>
                     <TableCell>{user.full_name || "-"}</TableCell>
+                    <TableCell>
+                      <Input
+                        value={user.company_name || ""}
+                        onChange={(e) => handleUpdateCompanyName(user.id, e.target.value)}
+                        placeholder="Enter company name"
+                        className="w-48"
+                        disabled={updateUserMutation.isPending}
+                      />
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline">
                         {user.role === "admin" ? "Admin" : "User"}
