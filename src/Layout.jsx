@@ -26,31 +26,13 @@ import {
 export default function Layout({ children, currentPageName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const { data: user } = useQuery({
+  const { data: user, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["currentUser"],
     queryFn: () => base44.auth.me()
   });
 
-  const { data: userProfile, isLoading: isLoadingProfile } = useQuery({
-    queryKey: ["userProfile", user?.email],
-    queryFn: async () => {
-      if (!user?.email) return null;
-      const profiles = await base44.entities.User.filter({ email: user.email });
-      let profile = profiles[0];
-      
-      // Auto-set user_type to "client" if missing
-      if (profile && !profile.user_type) {
-        await base44.entities.User.update(profile.id, { user_type: "client" });
-        profile = { ...profile, user_type: "client" };
-      }
-      
-      return profile;
-    },
-    enabled: !!user?.email
-  });
-
-  const isAgent = userProfile?.user_type === "agent" || 
-                  userProfile?.user_type === "super_admin" || 
+  const isAgent = user?.user_type === "agent" || 
+                  user?.user_type === "super_admin" || 
                   user?.role === "admin";
 
   const adminPages = ["Dashboard", "Clients", "Settings"];
@@ -148,7 +130,7 @@ export default function Layout({ children, currentPageName }) {
                   {isAgent && (
                     <DropdownMenuItem className="text-slate-600">
                       <Building2 className="w-4 h-4 mr-2" />
-                      {userProfile?.user_type || "Agent"}
+                      {user?.user_type || "Agent"}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
