@@ -21,7 +21,7 @@ export default function OrgSwitcher({ organizations, selectedOrg, onSelect }) {
           style={selectedOrg === org.id ? { backgroundColor: org.branding_color, color: 'white' } : {}}
         >
           {org.logo_url && (
-            <img src={org.logo_url} alt={org.name} className="w-4 h-4 object-contain" />
+            <img src={org.logo_url} alt={org.name} className="w-4 h-4 object-contain rounded" />
           )}
           {org.name}
         </Button>
