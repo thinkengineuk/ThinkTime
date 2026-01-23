@@ -101,7 +101,7 @@ export default function Dashboard() {
   const selectedOrgData = organizations.find(o => o.id === selectedOrg);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-blue-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -110,11 +110,11 @@ export default function Dashboard() {
               <img 
                 src={selectedOrgData.logo_url} 
                 alt={selectedOrgData.name} 
-                className="h-10 object-contain"
+                className="h-10 object-contain rounded"
               />
             )}
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-sky-500 to-blue-900 bg-clip-text text-transparent">
                 Support Dashboard
               </h1>
               <p className="text-slate-600 text-sm mt-1">Manage tickets across all organizations</p>
@@ -128,7 +128,7 @@ export default function Dashboard() {
             />
             <Button 
               onClick={() => setCreateOpen(true)}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30"
+              className="bg-gradient-to-r from-sky-500 to-blue-900 hover:from-sky-600 hover:to-blue-950 shadow-lg shadow-sky-500/30"
             >
               <Plus className="w-4 h-4 mr-2" />
               New Ticket
@@ -138,7 +138,7 @@ export default function Dashboard() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatsCard title="Open Tickets" value={stats.open} icon={Ticket} color="indigo" />
+          <StatsCard title="Open Tickets" value={stats.open} icon={Ticket} color="sky" />
           <StatsCard title="Pending" value={stats.pending} icon={Clock} color="amber" />
           <StatsCard title="Resolved" value={stats.resolved} icon={CheckCircle} color="emerald" />
           <StatsCard title="Urgent" value={stats.urgent} icon={AlertTriangle} color="rose" />

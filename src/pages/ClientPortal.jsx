@@ -80,7 +80,7 @@ export default function ClientPortal() {
   const brandColor = organization?.branding_color || "#3B82F6";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50/30">
       {/* Header with Branding */}
       <div 
         className="py-10 px-6 relative overflow-hidden"
@@ -96,7 +96,7 @@ export default function ClientPortal() {
                 <img 
                   src={organization.logo_url} 
                   alt={organization.name} 
-                  className="h-12 object-contain"
+                  className="h-12 object-contain rounded"
                 />
               )}
               <div>
