@@ -30,7 +30,7 @@ export default function Layout({ children, currentPageName }) {
     queryFn: () => base44.auth.me()
   });
 
-  const { data: userProfile } = useQuery({
+  const { data: userProfile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["userProfile", user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
@@ -51,6 +51,18 @@ export default function Layout({ children, currentPageName }) {
   const isAgent = userProfile?.user_type === "agent" || 
                   userProfile?.user_type === "super_admin" || 
                   user?.role === "admin";
+
+  // Redirect clients away from admin pages
+  useEffect(() => {
+    if (isLoadingProfile || !user) return;
+    
+    const isClient = !isAgent;
+    const adminPages = ["Dashboard", "Clients", "Settings"];
+    
+    if (isClient && adminPages.includes(currentPageName)) {
+      window.location.href = createPageUrl("ClientPortal");
+    }
+  }, [isAgent, currentPageName, isLoadingProfile, user]);
 
   const navItems = isAgent ? [
     { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
