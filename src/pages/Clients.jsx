@@ -6,12 +6,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Users, Pencil } from "lucide-react";
+import EditUserDialog from "@/components/clients/EditUserDialog";
 
 export default function Clients() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [editingCompanyNames, setEditingCompanyNames] = useState({});
+  const [editingUser, setEditingUser] = useState(null);
 
   const { data: users = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
@@ -35,6 +38,17 @@ export default function Clients() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["users"]);
+      setEditingUser(null);
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId) => {
+      await base44.entities.User.delete(userId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["users"]);
+      setEditingUser(null);
     },
   });
 
@@ -97,6 +111,21 @@ export default function Clients() {
     return variants[type] || "bg-slate-500/10 text-slate-600";
   };
 
+  const handleSaveUser = (userId, formData) => {
+    const org = organizations.find(o => o.id === formData.organization_id);
+    updateUserMutation.mutate({
+      userId,
+      user_type: formData.user_type,
+      organization_id: formData.organization_id,
+      organization_name: org?.name,
+      company_name: formData.company_name
+    });
+  };
+
+  const handleDeleteUser = (userId) => {
+    deleteUserMutation.mutate(userId);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -128,6 +157,7 @@ export default function Clients() {
                 <TableHead>Base44 Role</TableHead>
                 <TableHead>Organization</TableHead>
                 <TableHead>User Type</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -204,12 +234,32 @@ export default function Clients() {
                         </SelectContent>
                       </Select>
                     </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingUser(user)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
         </Card>
+
+        <EditUserDialog
+          open={!!editingUser}
+          onOpenChange={(open) => !open && setEditingUser(null)}
+          user={editingUser}
+          organizations={organizations}
+          onSave={handleSaveUser}
+          onDelete={handleDeleteUser}
+          isSaving={updateUserMutation.isPending}
+          isDeleting={deleteUserMutation.isPending}
+        />
       </div>
     </div>
   );
