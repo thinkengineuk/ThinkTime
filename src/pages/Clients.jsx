@@ -11,6 +11,7 @@ import { Loader2, Users } from "lucide-react";
 export default function Clients() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [editingCompanyNames, setEditingCompanyNames] = useState({});
 
   const { data: users = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
@@ -149,8 +150,16 @@ export default function Clients() {
                     <TableCell>{user.full_name || "-"}</TableCell>
                     <TableCell>
                       <Input
-                        value={user.company_name || ""}
-                        onChange={(e) => handleUpdateCompanyName(user.id, e.target.value)}
+                        value={editingCompanyNames[user.id] !== undefined ? editingCompanyNames[user.id] : user.company_name || ""}
+                        onChange={(e) => setEditingCompanyNames(prev => ({ ...prev, [user.id]: e.target.value }))}
+                        onBlur={(e) => {
+                          handleUpdateCompanyName(user.id, e.target.value);
+                          setEditingCompanyNames(prev => {
+                            const newState = { ...prev };
+                            delete newState[user.id];
+                            return newState;
+                          });
+                        }}
                         placeholder="Enter company name"
                         className="w-48"
                         disabled={updateUserMutation.isPending}
