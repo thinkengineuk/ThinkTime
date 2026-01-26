@@ -34,8 +34,13 @@ export default function ClientPortal() {
     queryKey: ["clientOrg", userProfile?.organization_id],
     queryFn: async () => {
       if (!userProfile?.organization_id) return null;
-      const orgs = await base44.entities.Organization.filter({ id: userProfile.organization_id });
-      return orgs[0];
+      try {
+        const orgs = await base44.entities.Organization.filter({ id: userProfile.organization_id });
+        return orgs[0] || null;
+      } catch (error) {
+        console.error("Error fetching organization:", error);
+        return null;
+      }
     },
     enabled: !!userProfile?.organization_id
   });
