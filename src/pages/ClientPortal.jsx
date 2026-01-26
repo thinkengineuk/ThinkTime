@@ -30,7 +30,7 @@ export default function ClientPortal() {
     enabled: !!user?.email
   });
 
-  const { data: organization } = useQuery({
+  const { data: organization, isLoading: isLoadingOrganization, error: orgError } = useQuery({
     queryKey: ["clientOrg", userProfile?.organization_id],
     queryFn: async () => {
       if (!userProfile?.organization_id) return null;
@@ -47,44 +47,57 @@ export default function ClientPortal() {
   });
 
   const handleCreateTicket = async (formData) => {
-    if (!organization) return;
+    try {
+      if (!organization) {
+        toast.error("Unable to create ticket. Organization data not loaded yet. Please try again.");
+        return;
+      }
 
-    const newCounter = (organization.ticket_counter || 0) + 1;
-    const displayId = generateTicketId(organization.prefix, newCounter);
+      if (!user?.email || !user?.full_name) {
+        toast.error("Unable to create ticket. User information incomplete.");
+        return;
+      }
 
-    const ticketData = {
-      subject: formData.subject,
-      description: formData.description,
-      priority: formData.priority,
-      category: formData.category,
-      organization_id: organization.id,
-      organization_prefix: organization.prefix,
-      client_email: user.email,
-      client_name: user.full_name,
-      display_id: displayId,
-      last_activity: new Date().toISOString(),
-      status: "open",
-      attachments: formData.attachments || []
-    };
+      const newCounter = (organization.ticket_counter || 0) + 1;
+      const displayId = generateTicketId(organization.prefix, newCounter);
 
-    const newTicket = await base44.entities.Ticket.create(ticketData);
+      const ticketData = {
+        subject: formData.subject,
+        description: formData.description,
+        priority: formData.priority,
+        category: formData.category,
+        organization_id: organization.id,
+        organization_prefix: organization.prefix,
+        client_email: user.email,
+        client_name: user.full_name,
+        display_id: displayId,
+        last_activity: new Date().toISOString(),
+        status: "open",
+        attachments: formData.attachments || []
+      };
 
-    await base44.entities.Organization.update(organization.id, { ticket_counter: newCounter });
+      const newTicket = await base44.entities.Ticket.create(ticketData);
 
-    // Optimistically update the ticket list
-    queryClient.setQueryData(["clientTickets", user?.email], (oldTickets) => [newTicket, ...(oldTickets || [])]);
+      await base44.entities.Organization.update(organization.id, { ticket_counter: newCounter });
 
-    await base44.functions.invoke('sendNewTicketNotification', {
-      displayId,
-      subject: formData.subject,
-      description: formData.description,
-      priority: formData.priority,
-      category: formData.category,
-      client_name: user.full_name,
-      client_email: user.email
-    });
-    
-    toast.success(`Ticket #${displayId} created successfully!`);
+      // Optimistically update the ticket list
+      queryClient.setQueryData(["clientTickets", user?.email], (oldTickets) => [newTicket, ...(oldTickets || [])]);
+
+      await base44.functions.invoke('sendNewTicketNotification', {
+        displayId,
+        subject: formData.subject,
+        description: formData.description,
+        priority: formData.priority,
+        category: formData.category,
+        client_name: user.full_name,
+        client_email: user.email
+      });
+      
+      toast.success(`Ticket #${displayId} created successfully!`);
+    } catch (error) {
+      console.error("Ticket creation error:", error);
+      toast.error("Failed to create ticket. Please try again.");
+    }
   };
 
   const filteredTickets = tickets.filter(ticket => {
@@ -126,8 +139,13 @@ export default function ClientPortal() {
               onClick={() => setCreateOpen(true)}
               style={{ backgroundColor: brandColor }}
               className="hover:opacity-90 shadow-lg"
+              disabled={isLoadingOrganization}
             >
-              <Plus className="w-4 h-4 mr-2" />
+              {isLoadingOrganization ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4 mr-2" />
+              )}
               New Request
             </Button>
           </div>
