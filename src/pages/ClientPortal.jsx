@@ -139,7 +139,7 @@ export default function ClientPortal() {
               onClick={() => setCreateOpen(true)}
               style={{ backgroundColor: brandColor }}
               className="hover:opacity-90 shadow-lg"
-              disabled={isLoadingOrganization}
+              disabled={isLoadingOrganization || !organization}
             >
               {isLoadingOrganization ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -215,6 +215,7 @@ export default function ClientPortal() {
         }}
         isClient={true}
         clientEmail={user?.email}
+        defaultOrgId={userProfile?.organization_id}
       />
     </div>
   );
