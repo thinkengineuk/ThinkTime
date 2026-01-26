@@ -43,12 +43,8 @@ export default function ClientPortal() {
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["clientTickets", user?.email],
     queryFn: () => base44.entities.Ticket.filter({ client_email: user?.email }, "-last_activity"),
-    enabled: !!user?.email
-  });
-
-  const { data: allUsers = [] } = useQuery({
-    queryKey: ["allUsersForNotifications"],
-    queryFn: () => base44.entities.User.list(),
+    enabled: !!user?.email,
+    refetchInterval: 2000
   });
 
   const handleCreateTicket = async (formData) => {
@@ -76,42 +72,19 @@ export default function ClientPortal() {
 
     await base44.entities.Organization.update(organization.id, { ticket_counter: newCounter });
 
-    await queryClient.invalidateQueries(["clientTickets", user?.email]);
+    await base44.functions.invoke('sendNewTicketNotification', {
+      displayId,
+      subject: formData.subject,
+      description: formData.description,
+      priority: formData.priority,
+      category: formData.category,
+      client_name: user.full_name,
+      client_email: user.email
+    });
+
+    await queryClient.invalidateQueries({ queryKey: ["clientTickets"] });
     
     toast.success(`Ticket #${displayId} created successfully!`);
-
-    // Send email to admins/agents
-    const adminEmails = allUsers
-      .filter(u => u.role === "admin" || u.user_type === "super_admin" || u.user_type === "agent")
-      .map(u => u.email);
-
-    if (adminEmails.length > 0) {
-      const subject = `New Ticket #${displayId}: ${formData.subject}`;
-      const body = `
-        A new ticket has been created by ${user.full_name || user.email}.
-        <br><br>
-        <strong>Subject:</strong> ${formData.subject}
-        <br>
-        <strong>Description:</strong> ${formData.description || "N/A"}
-        <br>
-        <strong>Priority:</strong> ${formData.priority}
-        <br>
-        <strong>Category:</strong> ${formData.category}
-        <br>
-        <strong>Client:</strong> ${user.full_name || user.email}
-        <br><br>
-        View the ticket in your dashboard.
-      `;
-
-      for (const email of adminEmails) {
-        await base44.integrations.Core.SendEmail({
-          to: email,
-          subject: subject,
-          body: body,
-          from_name: "ThinkSupport Notifications"
-        });
-      }
-    }
   };
 
   const filteredTickets = tickets.filter(ticket => {
