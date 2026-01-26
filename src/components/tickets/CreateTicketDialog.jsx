@@ -33,10 +33,17 @@ export default function CreateTicketDialog({
     assigned_agent_name: ""
   });
 
+  const { data: currentUser } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => base44.auth.me()
+  });
+
+  const isAdmin = currentUser?.role === "admin" || currentUser?.user_type === "super_admin";
+
   const { data: allUsers = [] } = useQuery({
     queryKey: ["allUsersForTicketCreation"],
     queryFn: () => base44.entities.User.list(),
-    enabled: !isClient
+    enabled: !isClient && isAdmin
   });
 
   const clientUsers = allUsers.filter(user => user.user_type === "client");
