@@ -43,8 +43,7 @@ export default function ClientPortal() {
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["clientTickets", user?.email],
     queryFn: () => base44.entities.Ticket.filter({ client_email: user?.email }, "-last_activity"),
-    enabled: !!user?.email,
-    refetchInterval: 2000
+    enabled: !!user?.email
   });
 
   const handleCreateTicket = async (formData) => {
@@ -72,6 +71,9 @@ export default function ClientPortal() {
 
     await base44.entities.Organization.update(organization.id, { ticket_counter: newCounter });
 
+    // Optimistically update the ticket list
+    queryClient.setQueryData(["clientTickets", user?.email], (oldTickets) => [newTicket, ...(oldTickets || [])]);
+
     await base44.functions.invoke('sendNewTicketNotification', {
       displayId,
       subject: formData.subject,
@@ -81,8 +83,6 @@ export default function ClientPortal() {
       client_name: user.full_name,
       client_email: user.email
     });
-
-    await queryClient.invalidateQueries({ queryKey: ["clientTickets"] });
     
     toast.success(`Ticket #${displayId} created successfully!`);
   };
