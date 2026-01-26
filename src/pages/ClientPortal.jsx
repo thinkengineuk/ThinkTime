@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +10,7 @@ import CreateTicketDialog from "@/components/tickets/CreateTicketDialog";
 import { generateTicketId } from "@/components/utils/base44";
 
 export default function ClientPortal() {
+  const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState("open");
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -38,10 +39,15 @@ export default function ClientPortal() {
     enabled: !!userProfile?.organization_id
   });
 
-  const { data: tickets = [], isLoading, refetch } = useQuery({
+  const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["clientTickets", user?.email],
     queryFn: () => base44.entities.Ticket.filter({ client_email: user?.email }, "-last_activity"),
     enabled: !!user?.email
+  });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ["allUsersForNotifications"],
+    queryFn: () => base44.entities.User.list(),
   });
 
   const handleCreateTicket = async (formData) => {
@@ -65,10 +71,44 @@ export default function ClientPortal() {
       attachments: formData.attachments || []
     };
 
-    await base44.entities.Ticket.create(ticketData);
+    const newTicket = await base44.entities.Ticket.create(ticketData);
 
     await base44.entities.Organization.update(organization.id, { ticket_counter: newCounter });
-    refetch();
+
+    queryClient.invalidateQueries(["clientTickets", user?.email]);
+
+    // Send email to admins/agents
+    const adminEmails = allUsers
+      .filter(u => u.role === "admin" || u.user_type === "super_admin" || u.user_type === "agent")
+      .map(u => u.email);
+
+    if (adminEmails.length > 0) {
+      const subject = `New Ticket #${displayId}: ${formData.subject}`;
+      const body = `
+        A new ticket has been created by ${user.full_name || user.email}.
+        <br><br>
+        <strong>Subject:</strong> ${formData.subject}
+        <br>
+        <strong>Description:</strong> ${formData.description || "N/A"}
+        <br>
+        <strong>Priority:</strong> ${formData.priority}
+        <br>
+        <strong>Category:</strong> ${formData.category}
+        <br>
+        <strong>Client:</strong> ${user.full_name || user.email}
+        <br><br>
+        View the ticket in your dashboard.
+      `;
+
+      for (const email of adminEmails) {
+        await base44.integrations.Core.SendEmail({
+          to: email,
+          subject: subject,
+          body: body,
+          from_name: "ThinkSupport Notifications"
+        });
+      }
+    }
   };
 
   const filteredTickets = tickets.filter(ticket => {
