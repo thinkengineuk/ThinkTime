@@ -8,6 +8,7 @@ import { Plus, Ticket, Loader2 } from "lucide-react";
 import TicketCard from "@/components/tickets/TicketCard";
 import CreateTicketDialog from "@/components/tickets/CreateTicketDialog";
 import { generateTicketId } from "@/components/utils/base44";
+import { toast } from "sonner";
 
 export default function ClientPortal() {
   const queryClient = useQueryClient();
@@ -75,7 +76,9 @@ export default function ClientPortal() {
 
     await base44.entities.Organization.update(organization.id, { ticket_counter: newCounter });
 
-    queryClient.invalidateQueries(["clientTickets", user?.email]);
+    await queryClient.invalidateQueries(["clientTickets", user?.email]);
+    
+    toast.success(`Ticket #${displayId} created successfully!`);
 
     // Send email to admins/agents
     const adminEmails = allUsers
@@ -215,7 +218,10 @@ export default function ClientPortal() {
       <CreateTicketDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        onSubmit={handleCreateTicket}
+        onSubmit={async (formData) => {
+          await handleCreateTicket(formData);
+          setCreateOpen(false);
+        }}
         isClient={true}
         clientEmail={user?.email}
       />
