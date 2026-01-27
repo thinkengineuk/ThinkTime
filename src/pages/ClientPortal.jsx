@@ -20,27 +20,19 @@ export default function ClientPortal() {
     queryFn: () => base44.auth.me()
   });
 
-  const { data: userProfile } = useQuery({
-    queryKey: ["userProfile", user?.email],
-    queryFn: async () => {
-      if (!user?.email) return null;
-      const profiles = await base44.entities.User.filter({ email: user.email });
-      return profiles[0];
-    },
-    enabled: !!user?.email
-  });
+  const clientOrganizationId = user?.data?.organization_id;
 
   const { data: organization, isLoading: isLoadingOrganization, error: orgError } = useQuery({
-    queryKey: ["clientOrg", userProfile?.organization_id],
+    queryKey: ["clientOrg", clientOrganizationId],
     queryFn: async () => {
-      if (!userProfile?.organization_id) {
-        console.warn("No organization_id found on user profile");
+      if (!clientOrganizationId) {
+        console.warn("No organization_id found on current user data");
         return null;
       }
       try {
-        const orgs = await base44.entities.Organization.filter({ id: userProfile.organization_id });
+        const orgs = await base44.entities.Organization.filter({ id: clientOrganizationId });
         if (!orgs || orgs.length === 0) {
-          console.error("Organization not found with ID:", userProfile.organization_id);
+          console.error("Organization not found with ID:", clientOrganizationId);
           return null;
         }
         return orgs[0];
@@ -50,7 +42,7 @@ export default function ClientPortal() {
         return null;
       }
     },
-    enabled: !!userProfile?.organization_id,
+    enabled: !!clientOrganizationId,
     retry: 1
   });
 
@@ -168,7 +160,7 @@ export default function ClientPortal() {
             </div>
             <Button 
               onClick={() => {
-                if (!userProfile?.organization_id) {
+                if (!clientOrganizationId) {
                   toast.error("Your account is not linked to an organization. Please contact support.");
                   return;
                 }
@@ -256,7 +248,7 @@ export default function ClientPortal() {
         }}
         isClient={true}
         clientEmail={user?.email}
-        defaultOrgId={userProfile?.organization_id}
+        defaultOrgId={clientOrganizationId}
       />
     </div>
   );
