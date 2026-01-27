@@ -43,7 +43,8 @@ export default function CreateTicketDialog({
   const { data: allUsers = [] } = useQuery({
     queryKey: ["allUsersForTicketCreation"],
     queryFn: () => base44.entities.User.list(),
-    enabled: open && !isClient && isAdmin
+    enabled: open && !isClient && isAdmin,
+    retry: false
   });
 
   const clientUsers = allUsers.filter(user => user.user_type === "client");
