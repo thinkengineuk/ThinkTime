@@ -23,6 +23,37 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, message: 'No recipients' });
     }
 
+    // Fetch the last 2 comments to show conversation context
+    const comments = await base44.asServiceRole.entities.Comment.filter(
+      { ticket_id: ticketId },
+      '-created_date',
+      2
+    );
+
+    // Build conversation history HTML
+    let conversationHtml = '';
+    if (comments.length > 0) {
+      conversationHtml = '<div style="margin: 20px 0;">';
+      
+      // Reverse to show oldest first in the context
+      const sortedComments = [...comments].reverse();
+      
+      for (const comment of sortedComments) {
+        const authorLabel = comment.author_role === 'agent' ? 'Agent' : 'Client';
+        conversationHtml += `
+          <div style="background-color: ${comment.author_role === 'agent' ? '#f1f5f9' : '#f8fafc'}; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 3px solid ${comment.author_role === 'agent' ? '#2563eb' : '#64748b'};">
+            <div style="font-size: 12px; color: #64748b; margin-bottom: 5px;">
+              <strong>${comment.author_name}</strong> (${authorLabel})
+            </div>
+            <div style="color: #475569; line-height: 1.6;">
+              ${comment.body}
+            </div>
+          </div>
+        `;
+      }
+      conversationHtml += '</div>';
+    }
+
     const emailBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2563eb;">Client Reply on Ticket #${displayId}</h2>
@@ -34,8 +65,15 @@ Deno.serve(async (req) => {
             ${reply_body}
           </div>
         </div>
+
+        ${conversationHtml ? `
+          <div style="margin-top: 20px;">
+            <h4 style="color: #475569; font-size: 14px; margin-bottom: 10px;">Recent Conversation:</h4>
+            ${conversationHtml}
+          </div>
+        ` : ''}
         
-        <p>Please log in to your admin dashboard to view and respond to this ticket.</p>
+        <p>Please log in to your admin dashboard to view and respond to this ticket: <a href="https://thinksupport.base44.app" style="color: #2563eb;">https://thinksupport.base44.app</a></p>
         
         <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
           This is an automated message from your support system.
