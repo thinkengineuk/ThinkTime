@@ -255,7 +255,7 @@ export default function TicketDetail() {
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Assign agent..." />
+                      <SelectValue placeholder="Assign engineer..." />
                     </SelectTrigger>
                     <SelectContent>
                       {agents.map(agent => (
@@ -310,10 +310,10 @@ export default function TicketDetail() {
               </div>
             </Card>
 
-            {/* Assigned Agent */}
+            {/* Assigned Engineer */}
             {ticket.assigned_agent_name && (
               <Card className="p-4 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">Assigned To</h3>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3">Assigned Engineer</h3>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
                     {ticket.assigned_agent_name.split(" ").map(n => n[0]).join("").slice(0, 2)}

@@ -7,18 +7,22 @@ Deno.serve(async (req) => {
 
     // Get all admins/agents to notify
     const users = await base44.asServiceRole.entities.User.list();
-    const recipients = users.filter(u => 
+    const admins = users.filter(u => 
       u.role === 'admin' || 
-      u.user_type === 'super_admin' || 
-      u.user_type === 'agent'
+      u.user_type === 'super_admin'
     );
+    const agents = users.filter(u => u.user_type === 'agent');
 
-    // If there's an assigned agent, prioritize them
-    const emailList = assigned_agent_email 
-      ? [assigned_agent_email]
-      : recipients.map(r => r.email);
+    // Always include admins, plus assigned agent if exists
+    const emailList = [
+      ...admins.map(a => a.email),
+      ...(assigned_agent_email ? [assigned_agent_email] : agents.map(a => a.email))
+    ];
+    
+    // Remove duplicates
+    const uniqueEmails = [...new Set(emailList)];
 
-    if (emailList.length === 0) {
+    if (uniqueEmails.length === 0) {
       console.warn('No recipients found for client reply notification');
       return Response.json({ success: false, message: 'No recipients' });
     }
