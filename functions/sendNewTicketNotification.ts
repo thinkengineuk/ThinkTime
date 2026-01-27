@@ -1,53 +1,65 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
-    try {
-        const base44 = createClientFromRequest(req);
-        const user = await base44.auth.me();
+  try {
+    const base44 = createClientFromRequest(req);
 
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+    const { ticketId, displayId, subject, description, priority, category, client_name, client_email, assigned_agent_email } = await req.json();
 
-        const { displayId, subject, description, priority, category, client_name, client_email } = await req.json();
-
-        const allUsers = await base44.asServiceRole.entities.User.list();
-
-        const adminEmails = allUsers
-            .filter(u => u.role === "admin" || u.user_type === "super_admin" || u.user_type === "agent")
-            .map(u => u.email);
-
-        if (adminEmails.length > 0) {
-            const emailSubject = `New Ticket #${displayId}: ${subject}`;
-            const emailBody = `
-                A new ticket has been created by ${client_name || client_email}.
-                <br><br>
-                <strong>Subject:</strong> ${subject}
-                <br>
-                <strong>Description:</strong> ${description || "N/A"}
-                <br>
-                <strong>Priority:</strong> ${priority}
-                <br>
-                <strong>Category:</strong> ${category}
-                <br>
-                <strong>Client:</strong> ${client_name || client_email}
-                <br><br>
-                View the ticket in your dashboard.
-            `;
-
-            for (const email of adminEmails) {
-                await base44.integrations.Core.SendEmail({
-                    to: email,
-                    subject: emailSubject,
-                    body: emailBody,
-                    from_name: "ThinkSupport Notifications"
-                });
-            }
-        }
-
-        return Response.json({ success: true, notified: adminEmails.length });
-    } catch (error) {
-        console.error("Error sending notifications:", error.message);
-        return Response.json({ error: error.message }, { status: 500 });
+    // Fetch all users to identify administrators and agents
+    const users = await base44.asServiceRole.entities.User.list();
+    
+    // If there's an assigned agent, notify them; otherwise notify all admins/agents
+    let recipientEmails;
+    if (assigned_agent_email) {
+      recipientEmails = [assigned_agent_email];
+    } else {
+      recipientEmails = users
+        .filter(user => user.role === 'admin' || user.user_type === 'super_admin' || user.user_type === 'agent')
+        .map(user => user.email);
     }
+
+    if (recipientEmails.length === 0) {
+      console.warn('No recipients found for new ticket notification');
+      return Response.json({ success: false, message: 'No recipients' });
+    }
+
+    // Construct email notification
+    const emailSubject = `New Support Ticket: [${displayId}] ${subject}`;
+    const emailBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">New Support Ticket Created</h2>
+        <p>A new support ticket has been submitted:</p>
+        
+        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p><strong>Ticket ID:</strong> ${displayId}</p>
+          <p><strong>Subject:</strong> ${subject}</p>
+          <p><strong>Priority:</strong> ${priority}</p>
+          <p><strong>Category:</strong> ${category}</p>
+          <p><strong>Client:</strong> ${client_name} (${client_email})</p>
+          ${description ? `<p><strong>Description:</strong></p><p style="color: #475569;">${description}</p>` : ''}
+        </div>
+        
+        <p>Please log in to your admin dashboard to view and respond to this ticket.</p>
+        
+        <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
+          This is an automated message from your support system.
+        </p>
+      </div>
+    `;
+
+    // Send email to recipients
+    for (const email of recipientEmails) {
+      await base44.asServiceRole.integrations.Core.SendEmail({
+        to: email,
+        subject: emailSubject,
+        body: emailBody
+      });
+    }
+
+    return Response.json({ success: true, sentTo: recipientEmails });
+  } catch (error) {
+    console.error('Error sending new ticket notification:', error);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
 });

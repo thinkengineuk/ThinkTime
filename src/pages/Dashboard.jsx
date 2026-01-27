@@ -57,6 +57,8 @@ export default function Dashboard() {
       organization_id: formData.organization_id,
       client_email: formData.client_email,
       client_name: formData.client_name,
+      assigned_agent_email: formData.assigned_agent_email,
+      assigned_agent_name: formData.assigned_agent_name,
       display_id: displayId,
       organization_prefix: org.prefix,
       last_activity: new Date().toISOString(),
@@ -64,9 +66,36 @@ export default function Dashboard() {
       attachments: formData.attachments || []
     };
 
-    await base44.entities.Ticket.create(ticketData);
+    const newTicket = await base44.entities.Ticket.create(ticketData);
 
     await base44.entities.Organization.update(org.id, { ticket_counter: newCounter });
+
+    // Create initial comment with description and attachments
+    if (formData.description || formData.attachments?.length > 0) {
+      await base44.entities.Comment.create({
+        ticket_id: newTicket.id,
+        ticket_display_id: displayId,
+        author_email: user.email,
+        author_name: user.full_name,
+        author_role: "agent",
+        body: formData.description || "New ticket created",
+        is_internal: false,
+        source: "web",
+        attachments: formData.attachments || []
+      });
+    }
+
+    // Send notification to client
+    await base44.functions.invoke('sendTicketReplyNotification', {
+      ticketId: newTicket.id,
+      displayId,
+      subject: formData.subject,
+      client_email: formData.client_email,
+      client_name: formData.client_name,
+      agent_name: user.full_name,
+      reply_body: formData.description || "Your ticket has been created and assigned to our team."
+    });
+
     refetch();
   };
 
