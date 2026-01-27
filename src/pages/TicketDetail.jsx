@@ -65,17 +65,47 @@ export default function TicketDetail() {
   });
 
   const addComment = useMutation({
-    mutationFn: (data) => base44.entities.Comment.create({
-      ticket_id: ticketId,
-      ticket_display_id: ticket.display_id,
-      author_email: user.email,
-      author_name: user.full_name,
-      author_role: user.user_type === "client" ? "client" : "agent",
-      body: data.body,
-      is_internal: data.isInternal,
-      source: "web",
-      attachments: data.attachments || []
-    }),
+    mutationFn: async (data) => {
+      const comment = await base44.entities.Comment.create({
+        ticket_id: ticketId,
+        ticket_display_id: ticket.display_id,
+        author_email: user.email,
+        author_name: user.full_name,
+        author_role: user.user_type === "client" ? "client" : "agent",
+        body: data.body,
+        is_internal: data.isInternal,
+        source: "web",
+        attachments: data.attachments || []
+      });
+
+      // Send email notification if not internal
+      if (!data.isInternal) {
+        if (isAgent) {
+          // Agent replied, notify client
+          await base44.functions.invoke('sendTicketReplyNotification', {
+            ticketId,
+            displayId: ticket.display_id,
+            subject: ticket.subject,
+            client_email: ticket.client_email,
+            client_name: ticket.client_name,
+            agent_name: user.full_name,
+            reply_body: data.body
+          });
+        } else {
+          // Client replied, notify agent or admin
+          await base44.functions.invoke('sendClientReplyNotification', {
+            ticketId,
+            displayId: ticket.display_id,
+            subject: ticket.subject,
+            client_name: user.full_name,
+            assigned_agent_email: ticket.assigned_agent_email,
+            reply_body: data.body
+          });
+        }
+      }
+
+      return comment;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(["comments", ticketId]);
       base44.entities.Ticket.update(ticketId, { last_activity: new Date().toISOString() });
@@ -143,9 +173,22 @@ export default function TicketDetail() {
                 </div>
               </div>
 
-              {ticket.description && (
-                <div className="bg-slate-50 rounded-lg p-4 text-slate-700">
-                  {ticket.description}
+              {ticket.attachments?.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-slate-600 mb-2">Attachments:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {ticket.attachments.map((att, idx) => (
+                      <a 
+                        key={idx}
+                        href={att.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-xs bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-200 px-2.5 py-1.5 rounded-lg text-blue-700 font-medium transition-all hover:shadow-sm"
+                      >
+                        {att.name}
+                      </a>
+                    ))}
+                  </div>
                 </div>
               )}
             </Card>

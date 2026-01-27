@@ -94,17 +94,34 @@ export default function ClientPortal() {
 
       await base44.entities.Organization.update(organization.id, { ticket_counter: newCounter });
 
+      // Create initial comment with description and attachments
+      if (formData.description || formData.attachments?.length > 0) {
+        await base44.entities.Comment.create({
+          ticket_id: newTicket.id,
+          ticket_display_id: displayId,
+          author_email: user.email,
+          author_name: user.full_name,
+          author_role: "client",
+          body: formData.description || "New ticket created",
+          is_internal: false,
+          source: "web",
+          attachments: formData.attachments || []
+        });
+      }
+
       // Optimistically update the ticket list
       queryClient.setQueryData(["clientTickets", user?.email], (oldTickets) => [newTicket, ...(oldTickets || [])]);
 
       await base44.functions.invoke('sendNewTicketNotification', {
+        ticketId: newTicket.id,
         displayId,
         subject: formData.subject,
         description: formData.description,
         priority: formData.priority,
         category: formData.category,
         client_name: user.full_name,
-        client_email: user.email
+        client_email: user.email,
+        assigned_agent_email: formData.assigned_agent_email
       });
       
       toast.success(`Ticket #${displayId} created successfully!`);
