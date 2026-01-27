@@ -143,7 +143,7 @@ export default function Clients() {
                 <TableHead>Full Name</TableHead>
                 <TableHead>Company Name</TableHead>
                 <TableHead>Base44 Role</TableHead>
-                <TableHead>Organization</TableHead>
+                <TableHead>Organisation</TableHead>
                 <TableHead>User Type</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>

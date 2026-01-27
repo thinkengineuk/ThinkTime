@@ -47,6 +47,11 @@ export default function CreateTicketDialog({
     retry: false
   });
 
+  const getOrgName = (orgId) => {
+    const org = organizations?.find(o => o.id === orgId);
+    return org ? ` (${org.name})` : '';
+  };
+
   const clientUsers = allUsers.filter(user => user.user_type === "client" && user.role !== "admin");
   const agentUsers = allUsers.filter(user => user.user_type === "agent" || user.user_type === "super_admin" || user.role === "admin");
 
@@ -118,7 +123,7 @@ export default function CreateTicketDialog({
                 <SelectContent>
                   {clientUsers.map(client => (
                     <SelectItem key={client.email} value={client.email}>
-                      {client.full_name} ({client.email})
+                      {client.full_name} ({client.email}){getOrgName(client.organization_id)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -147,7 +152,7 @@ export default function CreateTicketDialog({
                   <SelectItem value={null}>Unassigned</SelectItem>
                   {agentUsers.map(agent => (
                     <SelectItem key={agent.email} value={agent.email}>
-                      {agent.full_name} ({agent.email})
+                      {agent.full_name} ({agent.email}){getOrgName(agent.organization_id)}
                     </SelectItem>
                   ))}
                 </SelectContent>
