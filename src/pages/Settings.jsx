@@ -102,8 +102,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
           <p className="text-slate-500 mt-1">Manage organizations and system configuration</p>
@@ -297,7 +296,6 @@ export default function Settings() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
     </div>
   );
 }
