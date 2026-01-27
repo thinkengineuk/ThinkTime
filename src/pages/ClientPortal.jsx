@@ -20,7 +20,7 @@ export default function ClientPortal() {
     queryFn: () => base44.auth.me()
   });
 
-  const clientOrganizationId = user?.data?.organization_id;
+  const clientOrganizationId = user?.organization_id;
 
   const { data: organization, isLoading: isLoadingOrganization, error: orgError } = useQuery({
     queryKey: ["clientOrg", clientOrganizationId],
@@ -30,12 +30,12 @@ export default function ClientPortal() {
         return null;
       }
       try {
-        const orgs = await base44.entities.Organization.filter({ id: clientOrganizationId });
-        if (!orgs || orgs.length === 0) {
+        const org = await base44.entities.Organization.get(clientOrganizationId);
+        if (!org) {
           console.error("Organization not found with ID:", clientOrganizationId);
           return null;
         }
-        return orgs[0];
+        return org;
       } catch (error) {
         console.error("Error fetching organization:", error);
         toast.error("Unable to load organization data. Please contact support.");
