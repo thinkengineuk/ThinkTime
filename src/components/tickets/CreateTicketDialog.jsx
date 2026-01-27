@@ -47,21 +47,8 @@ export default function CreateTicketDialog({
     retry: false
   });
 
-  const clientUsers = allUsers.filter(user => user.user_type === "client");
+  const clientUsers = allUsers.filter(user => user.user_type === "client" && user.role !== "admin");
   const agentUsers = allUsers.filter(user => user.user_type === "agent" || user.user_type === "super_admin" || user.role === "admin");
-
-  // Fetch profiles to get company names for clients
-  const { data: profiles = [] } = useQuery({
-    queryKey: ["clientProfiles"],
-    queryFn: async () => {
-      const clientEmails = clientUsers.map(c => c.email);
-      if (clientEmails.length === 0) return [];
-      const allProfiles = await base44.entities.ClientProfile.list();
-      return allProfiles.filter(p => clientEmails.includes(p.email));
-    },
-    enabled: open && !isClient && clientUsers.length > 0,
-    retry: false
-  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -129,21 +116,11 @@ export default function CreateTicketDialog({
                   <SelectValue placeholder="Select client" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clientUsers.map(client => {
-                    const profile = profiles.find(p => p.email === client.email);
-                    const companyName = profile?.company_name || "";
-                    return (
-                      <SelectItem key={client.email} value={client.email}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">
-                            {client.full_name || client.email}
-                            {companyName && ` - ${companyName}`}
-                          </span>
-                          <span className="text-xs text-slate-500">{client.email}</span>
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
+                  {clientUsers.map(client => (
+                    <SelectItem key={client.email} value={client.email}>
+                      {client.full_name} ({client.email})
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -170,7 +147,7 @@ export default function CreateTicketDialog({
                   <SelectItem value={null}>Unassigned</SelectItem>
                   {agentUsers.map(agent => (
                     <SelectItem key={agent.email} value={agent.email}>
-                      {agent.full_name || agent.email}
+                      {agent.full_name} ({agent.email})
                     </SelectItem>
                   ))}
                 </SelectContent>
