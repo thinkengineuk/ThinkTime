@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
       </div>
     `;
 
-    for (const email of emailList) {
+    for (const email of uniqueEmails) {
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: email,
         subject: `Client Reply: [${displayId}] ${subject}`,
@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return Response.json({ success: true, sentTo: emailList });
+    return Response.json({ success: true, sentTo: uniqueEmails });
   } catch (error) {
     console.error('Error sending client reply notification:', error);
     return Response.json({ error: error.message }, { status: 500 });
