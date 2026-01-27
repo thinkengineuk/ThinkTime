@@ -70,7 +70,7 @@ export default function Layout({ children, currentPageName }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-blue-50">
       {/* Top Navigation */}
       <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
