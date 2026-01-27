@@ -254,52 +254,54 @@ export default function TicketDetail() {
                     </SelectContent>
                   </Select>
 
-                  <Select 
-                    value={ticket.assigned_agent_email || ""} 
-                    onValueChange={async (v) => {
-                      const agent = agents.find(a => a.email === v);
-                      const oldAssignedEmail = ticket.assigned_agent_email;
-                      
-                      // Handle unassign or assign
-                      const updateData = v === "" ? {
-                        assigned_agent_email: null,
-                        assigned_agent_name: null
-                      } : {
-                        assigned_agent_email: v,
-                        assigned_agent_name: agent?.full_name || v
-                      };
-                      
-                      await updateTicket.mutateAsync(updateData);
+                  {(user?.role === "admin" || user?.user_type === "super_admin") && (
+                    <Select 
+                      value={ticket.assigned_agent_email || ""} 
+                      onValueChange={async (v) => {
+                        const agent = agents.find(a => a.email === v);
+                        const oldAssignedEmail = ticket.assigned_agent_email;
+                        
+                        // Handle unassign or assign
+                        const updateData = v === "" ? {
+                          assigned_agent_email: null,
+                          assigned_agent_name: null
+                        } : {
+                          assigned_agent_email: v,
+                          assigned_agent_name: agent?.full_name || v
+                        };
+                        
+                        await updateTicket.mutateAsync(updateData);
 
-                      // Send notification if agent is newly assigned (from unassigned or different agent)
-                      if (v && v !== "" && v !== oldAssignedEmail) {
-                        await base44.functions.invoke('sendAgentAssignmentNotification', {
-                          ticketId: ticket.id,
-                          displayId: ticket.display_id,
-                          subject: ticket.subject,
-                          agent_email: v,
-                          agent_name: agent?.full_name || v,
-                          client_name: ticket.client_name,
-                          client_email: ticket.client_email,
-                          priority: ticket.priority,
-                          category: ticket.category,
-                          description: ticket.description
-                        });
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Assign engineer..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={null}>Unassigned</SelectItem>
-                      {agents.map(agent => (
-                        <SelectItem key={agent.id} value={agent.email}>
-                          {agent.full_name} ({agent.email}){getOrgName(agent.organization_id)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        // Send notification if agent is newly assigned (from unassigned or different agent)
+                        if (v && v !== "" && v !== oldAssignedEmail) {
+                          await base44.functions.invoke('sendAgentAssignmentNotification', {
+                            ticketId: ticket.id,
+                            displayId: ticket.display_id,
+                            subject: ticket.subject,
+                            agent_email: v,
+                            agent_name: agent?.full_name || v,
+                            client_name: ticket.client_name,
+                            client_email: ticket.client_email,
+                            priority: ticket.priority,
+                            category: ticket.category,
+                            description: ticket.description
+                          });
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Assign engineer..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>Unassigned</SelectItem>
+                        {agents.map(agent => (
+                          <SelectItem key={agent.id} value={agent.email}>
+                            {agent.full_name} ({agent.email}){getOrgName(agent.organization_id)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
 
                   <Button 
                     variant="outline" 
