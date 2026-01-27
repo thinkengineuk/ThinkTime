@@ -256,12 +256,30 @@ export default function TicketDetail() {
 
                   <Select 
                     value={ticket.assigned_agent_email || ""} 
-                    onValueChange={(v) => {
+                    onValueChange={async (v) => {
                       const agent = agents.find(a => a.email === v);
-                      updateTicket.mutate({ 
+                      const oldAssignedEmail = ticket.assigned_agent_email;
+                      
+                      await updateTicket.mutateAsync({ 
                         assigned_agent_email: v,
                         assigned_agent_name: agent?.full_name || v
                       });
+
+                      // Send notification if agent is newly assigned or changed
+                      if (v && v !== oldAssignedEmail) {
+                        await base44.functions.invoke('sendAgentAssignmentNotification', {
+                          ticketId: ticket.id,
+                          displayId: ticket.display_id,
+                          subject: ticket.subject,
+                          agent_email: v,
+                          agent_name: agent?.full_name || v,
+                          client_name: ticket.client_name,
+                          client_email: ticket.client_email,
+                          priority: ticket.priority,
+                          category: ticket.category,
+                          description: ticket.description
+                        });
+                      }
                     }}
                   >
                     <SelectTrigger>
