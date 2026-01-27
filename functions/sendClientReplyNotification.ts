@@ -3,7 +3,28 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    
+    // Authentication check
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { ticketId, displayId, subject, client_name, assigned_agent_email, reply_body } = await req.json();
+
+    // Authorization: Verify the user is involved in this ticket
+    const ticket = await base44.asServiceRole.entities.Ticket.get(ticketId);
+    if (!ticket) {
+      return Response.json({ error: 'Ticket not found' }, { status: 404 });
+    }
+
+    // User must be either the client on the ticket, or an admin/agent
+    const isAgent = user.role === 'admin' || user.user_type === 'agent' || user.user_type === 'super_admin';
+    const isTicketClient = user.email === ticket.client_email;
+
+    if (!isAgent && !isTicketClient) {
+      return Response.json({ error: 'Forbidden: You are not authorized to send notifications for this ticket' }, { status: 403 });
+    }
 
     // Get all admins/agents to notify
     const users = await base44.asServiceRole.entities.User.list();

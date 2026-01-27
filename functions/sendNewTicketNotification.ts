@@ -4,7 +4,21 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
+    // Authentication check
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { ticketId, displayId, subject, description, priority, category, client_name, client_email, assigned_agent_email } = await req.json();
+
+    // Authorization: Verify the user is authorized to create this ticket
+    const isAgent = user.role === 'admin' || user.user_type === 'agent' || user.user_type === 'super_admin';
+    
+    // If user is a client, they can only create tickets for themselves
+    if (!isAgent && user.email !== client_email) {
+      return Response.json({ error: 'Forbidden: You can only create tickets for yourself' }, { status: 403 });
+    }
 
     // Fetch all users to identify administrators and agents
     const users = await base44.asServiceRole.entities.User.list();

@@ -4,6 +4,19 @@ import { Resend } from 'npm:resend@3.2.0';
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
+        
+        // Authentication and authorization check
+        const user = await base44.auth.me();
+        if (!user) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        // Only admins and agents can send emails
+        const isAuthorized = user.role === 'admin' || user.user_type === 'agent' || user.user_type === 'super_admin';
+        if (!isAuthorized) {
+            return Response.json({ error: 'Forbidden: Admin or agent access required' }, { status: 403 });
+        }
+
         const { to, subject, body, from } = await req.json();
 
         if (!to || !subject || !body) {

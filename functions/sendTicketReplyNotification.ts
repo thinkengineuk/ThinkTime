@@ -3,6 +3,19 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    
+    // Authentication and authorization check
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Only admins and agents can send ticket reply notifications
+    const isAuthorized = user.role === 'admin' || user.user_type === 'agent' || user.user_type === 'super_admin';
+    if (!isAuthorized) {
+      return Response.json({ error: 'Forbidden: Admin or agent access required' }, { status: 403 });
+    }
+
     const { ticketId, displayId, subject, client_email, client_name, agent_name, reply_body } = await req.json();
 
     const firstName = client_name.split(' ')[0];
