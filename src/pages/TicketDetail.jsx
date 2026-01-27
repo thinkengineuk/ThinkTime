@@ -260,13 +260,19 @@ export default function TicketDetail() {
                       const agent = agents.find(a => a.email === v);
                       const oldAssignedEmail = ticket.assigned_agent_email;
                       
-                      await updateTicket.mutateAsync({ 
+                      // Handle unassign or assign
+                      const updateData = v === "" ? {
+                        assigned_agent_email: null,
+                        assigned_agent_name: null
+                      } : {
                         assigned_agent_email: v,
                         assigned_agent_name: agent?.full_name || v
-                      });
+                      };
+                      
+                      await updateTicket.mutateAsync(updateData);
 
-                      // Send notification if agent is newly assigned or changed
-                      if (v && v !== oldAssignedEmail) {
+                      // Send notification if agent is newly assigned (from unassigned or different agent)
+                      if (v && v !== "" && v !== oldAssignedEmail) {
                         await base44.functions.invoke('sendAgentAssignmentNotification', {
                           ticketId: ticket.id,
                           displayId: ticket.display_id,
@@ -286,6 +292,7 @@ export default function TicketDetail() {
                       <SelectValue placeholder="Assign engineer..." />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value={null}>Unassigned</SelectItem>
                       {agents.map(agent => (
                         <SelectItem key={agent.id} value={agent.email}>
                           {agent.full_name} ({agent.email}){getOrgName(agent.organization_id)}
