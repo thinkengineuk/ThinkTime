@@ -24,23 +24,44 @@ export default function Dashboard() {
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
-    queryFn: () => base44.auth.me()
+    queryFn: () => base44.auth.me(),
+    onSuccess: (data) => {
+      console.log("Current User:", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching current user:", error);
+    }
   });
 
   const { data: organizations = [] } = useQuery({
     queryKey: ["organizations"],
-    queryFn: () => base44.entities.Organization.list()
+    queryFn: () => base44.entities.Organization.list(),
+    onSuccess: (data) => {
+      console.log("Organizations:", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching organizations:", error);
+    }
   });
 
   const { data: tickets = [], isLoading, refetch } = useQuery({
     queryKey: ["tickets", selectedOrg],
     queryFn: async () => {
+      console.log("Fetching tickets for selectedOrg:", selectedOrg);
       if (selectedOrg === "all") {
         const allTickets = await base44.entities.Ticket.list();
+        console.log("All tickets fetched:", allTickets);
         return allTickets.sort((a, b) => new Date(b.last_activity) - new Date(a.last_activity));
       }
       const filteredTickets = await base44.entities.Ticket.filter({ organization_id: selectedOrg });
+      console.log("Filtered tickets fetched:", filteredTickets);
       return filteredTickets.sort((a, b) => new Date(b.last_activity) - new Date(a.last_activity));
+    },
+    onSuccess: (data) => {
+      console.log("Tickets query successful:", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching tickets:", error);
     }
   });
 
@@ -121,6 +142,9 @@ export default function Dashboard() {
     }
     return true;
   });
+
+  console.log("Filtered tickets for display:", filteredTickets);
+  console.log("View mode:", viewMode, "Filters:", filters);
 
   const stats = {
     open: tickets.filter(t => t.status === "open").length,
@@ -206,6 +230,7 @@ export default function Dashboard() {
             <div className="text-center py-12 bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-sm">
               <Ticket className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500">No tickets found</p>
+              <p className="text-xs text-slate-400 mt-2">Check console for errors</p>
             </div>
           ) : (
             filteredTickets.map(ticket => (
