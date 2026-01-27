@@ -36,9 +36,11 @@ export default function Dashboard() {
     queryKey: ["tickets", selectedOrg],
     queryFn: async () => {
       if (selectedOrg === "all") {
-        return base44.entities.Ticket.list("-last_activity");
+        const allTickets = await base44.entities.Ticket.list();
+        return allTickets.sort((a, b) => new Date(b.last_activity) - new Date(a.last_activity));
       }
-      return base44.entities.Ticket.filter({ organization_id: selectedOrg }, "-last_activity");
+      const filteredTickets = await base44.entities.Ticket.filter({ organization_id: selectedOrg });
+      return filteredTickets.sort((a, b) => new Date(b.last_activity) - new Date(a.last_activity));
     }
   });
 
