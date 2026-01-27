@@ -44,7 +44,7 @@ export default function TicketDetail() {
 
   const { data: comments = [] } = useQuery({
     queryKey: ["comments", ticketId],
-    queryFn: () => base44.entities.Comment.filter({ ticket_id: ticketId }, "created_date"),
+    queryFn: () => base44.entities.Comment.filter({ ticket_id: ticketId }, "-created_date"),
     enabled: !!ticketId
   });
 
