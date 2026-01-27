@@ -132,7 +132,7 @@ export default function ClientPortal() {
   const brandColor = organization?.branding_color || "#3B82F6";
 
   return (
-
+    <div>
       {/* Header with Branding */}
       <div 
         className="py-10 px-6 relative overflow-hidden"
