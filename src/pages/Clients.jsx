@@ -13,7 +13,6 @@ import EditUserDialog from "@/components/clients/EditUserDialog";
 export default function Clients() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [editingCompanyNames, setEditingCompanyNames] = useState({});
   const [editingUser, setEditingUser] = useState(null);
 
   const { data: users = [], isLoading: isLoadingUsers } = useQuery({
@@ -79,17 +78,6 @@ export default function Clients() {
       organization_id: orgId,
       organization_name: org?.name,
       company_name: user.company_name
-    });
-  };
-
-  const handleUpdateCompanyName = (userId, companyName) => {
-    const user = users.find(u => u.id === userId);
-    updateUserMutation.mutate({ 
-      userId, 
-      user_type: user.user_type || "client",
-      organization_id: user.organization_id,
-      organization_name: user.organization_name,
-      company_name: companyName
     });
   };
 
@@ -178,23 +166,7 @@ export default function Clients() {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.email}</TableCell>
                     <TableCell>{user.full_name || "-"}</TableCell>
-                    <TableCell>
-                      <Input
-                        value={editingCompanyNames[user.id] !== undefined ? editingCompanyNames[user.id] : user.company_name || ""}
-                        onChange={(e) => setEditingCompanyNames(prev => ({ ...prev, [user.id]: e.target.value }))}
-                        onBlur={(e) => {
-                          handleUpdateCompanyName(user.id, e.target.value);
-                          setEditingCompanyNames(prev => {
-                            const newState = { ...prev };
-                            delete newState[user.id];
-                            return newState;
-                          });
-                        }}
-                        placeholder="Enter company name"
-                        className="w-48"
-                        disabled={updateUserMutation.isPending}
-                      />
-                    </TableCell>
+                    <TableCell>{user.company_name || "-"}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
                         {user.role === "admin" ? "Admin" : "User"}
