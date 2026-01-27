@@ -45,18 +45,30 @@ export default function Dashboard() {
   });
 
   const { data: tickets = [], isLoading, refetch } = useQuery({
-    queryKey: ["tickets", selectedOrg],
+    queryKey: ["tickets", selectedOrg, user?.email],
     queryFn: async () => {
       console.log("Fetching tickets for selectedOrg:", selectedOrg);
+      
+      const isAgent = user?.user_type === "agent";
+      const isSuperAdmin = user?.user_type === "super_admin" || user?.role === "admin";
+      
+      let fetchedTickets;
+      
       if (selectedOrg === "all") {
-        const allTickets = await base44.entities.Ticket.list();
-        console.log("All tickets fetched:", allTickets);
-        return allTickets.sort((a, b) => new Date(b.last_activity) - new Date(a.last_activity));
+        fetchedTickets = await base44.entities.Ticket.list();
+      } else {
+        fetchedTickets = await base44.entities.Ticket.filter({ organization_id: selectedOrg });
       }
-      const filteredTickets = await base44.entities.Ticket.filter({ organization_id: selectedOrg });
-      console.log("Filtered tickets fetched:", filteredTickets);
-      return filteredTickets.sort((a, b) => new Date(b.last_activity) - new Date(a.last_activity));
+      
+      // Filter tickets for engineers - they should only see tickets assigned to them
+      if (isAgent && !isSuperAdmin) {
+        fetchedTickets = fetchedTickets.filter(ticket => ticket.assigned_agent_email === user.email);
+      }
+      
+      console.log("Fetched tickets:", fetchedTickets);
+      return fetchedTickets.sort((a, b) => new Date(b.last_activity) - new Date(a.last_activity));
     },
+    enabled: !!user,
     onSuccess: (data) => {
       console.log("Tickets query successful:", data);
     },
@@ -118,6 +130,22 @@ export default function Dashboard() {
       agent_name: user.full_name,
       reply_body: formData.description || "Your ticket has been created and assigned to our team."
     });
+
+    // Send notification to assigned agent if one was assigned
+    if (formData.assigned_agent_email) {
+      await base44.functions.invoke('sendAgentAssignmentNotification', {
+        ticketId: newTicket.id,
+        displayId,
+        subject: formData.subject,
+        agent_email: formData.assigned_agent_email,
+        agent_name: formData.assigned_agent_name,
+        client_name: formData.client_name,
+        client_email: formData.client_email,
+        priority: formData.priority,
+        category: formData.category,
+        description: formData.description
+      });
+    }
 
     refetch();
   };
