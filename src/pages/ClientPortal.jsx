@@ -33,16 +33,25 @@ export default function ClientPortal() {
   const { data: organization, isLoading: isLoadingOrganization, error: orgError } = useQuery({
     queryKey: ["clientOrg", userProfile?.organization_id],
     queryFn: async () => {
-      if (!userProfile?.organization_id) return null;
+      if (!userProfile?.organization_id) {
+        console.warn("No organization_id found on user profile");
+        return null;
+      }
       try {
         const orgs = await base44.entities.Organization.filter({ id: userProfile.organization_id });
-        return orgs[0] || null;
+        if (!orgs || orgs.length === 0) {
+          console.error("Organization not found with ID:", userProfile.organization_id);
+          return null;
+        }
+        return orgs[0];
       } catch (error) {
         console.error("Error fetching organization:", error);
+        toast.error("Unable to load organization data. Please contact support.");
         return null;
       }
     },
-    enabled: !!userProfile?.organization_id
+    enabled: !!userProfile?.organization_id,
+    retry: 1
   });
 
   const { data: tickets = [], isLoading } = useQuery({
@@ -141,7 +150,17 @@ export default function ClientPortal() {
               </div>
             </div>
             <Button 
-              onClick={() => setCreateOpen(true)}
+              onClick={() => {
+                if (!userProfile?.organization_id) {
+                  toast.error("Your account is not linked to an organization. Please contact support.");
+                  return;
+                }
+                if (!organization) {
+                  toast.error("Organization data could not be loaded. Please try refreshing the page.");
+                  return;
+                }
+                setCreateOpen(true);
+              }}
               style={{ backgroundColor: brandColor }}
               className="hover:opacity-90 shadow-lg"
               disabled={isLoadingOrganization || !organization}
