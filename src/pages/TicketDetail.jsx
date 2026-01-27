@@ -56,6 +56,16 @@ export default function TicketDetail() {
     }
   });
 
+  const { data: organizations = [] } = useQuery({
+    queryKey: ["organizations"],
+    queryFn: () => base44.entities.Organization.list()
+  });
+
+  const getOrgName = (orgId) => {
+    const org = organizations.find(o => o.id === orgId);
+    return org ? ` (${org.name})` : '';
+  };
+
   const updateTicket = useMutation({
     mutationFn: (data) => base44.entities.Ticket.update(ticketId, { 
       ...data, 
@@ -260,7 +270,7 @@ export default function TicketDetail() {
                     <SelectContent>
                       {agents.map(agent => (
                         <SelectItem key={agent.id} value={agent.email}>
-                          {agent.full_name || agent.email}
+                          {agent.full_name} ({agent.email}){getOrgName(agent.organization_id)}
                         </SelectItem>
                       ))}
                     </SelectContent>
