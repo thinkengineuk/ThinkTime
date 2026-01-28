@@ -78,76 +78,91 @@ export default function Dashboard() {
   });
 
   const handleCreateTicket = async (formData) => {
-    const org = organizations.find(o => o.id === formData.organization_id);
-    if (!org) return;
+    try {
+      console.log("Creating ticket with formData:", formData);
+      
+      const org = organizations.find(o => o.id === formData.organization_id);
+      if (!org) {
+        console.error("Organization not found:", formData.organization_id);
+        return;
+      }
 
-    const newCounter = (org.ticket_counter || 0) + 1;
-    const displayId = generateTicketId(org.prefix, newCounter);
+      const newCounter = (org.ticket_counter || 0) + 1;
+      const displayId = generateTicketId(org.prefix, newCounter);
 
-    const ticketData = {
-      subject: formData.subject,
-      description: formData.description,
-      priority: formData.priority,
-      category: formData.category,
-      organization_id: formData.organization_id,
-      client_email: formData.client_email,
-      client_name: formData.client_name,
-      assigned_agent_email: formData.assigned_agent_email,
-      assigned_agent_name: formData.assigned_agent_name,
-      display_id: displayId,
-      organization_prefix: org.prefix,
-      last_activity: new Date().toISOString(),
-      status: "open",
-      attachments: formData.attachments || []
-    };
+      console.log("Generated display ID:", displayId);
 
-    const newTicket = await base44.entities.Ticket.create(ticketData);
-
-    await base44.entities.Organization.update(org.id, { ticket_counter: newCounter });
-
-    // Create initial comment with description and attachments
-    if (formData.description || formData.attachments?.length > 0) {
-      await base44.entities.Comment.create({
-        ticket_id: newTicket.id,
-        ticket_display_id: displayId,
-        author_email: user.email,
-        author_name: user.full_name,
-        author_role: "agent",
-        body: formData.description || "New ticket created",
-        is_internal: false,
-        source: "web",
+      const ticketData = {
+        subject: formData.subject,
+        description: formData.description,
+        priority: formData.priority,
+        category: formData.category,
+        organization_id: formData.organization_id,
+        client_email: formData.client_email,
+        client_name: formData.client_name,
+        assigned_agent_email: formData.assigned_agent_email,
+        assigned_agent_name: formData.assigned_agent_name,
+        display_id: displayId,
+        organization_prefix: org.prefix,
+        last_activity: new Date().toISOString(),
+        status: "open",
         attachments: formData.attachments || []
-      });
-    }
+      };
 
-    // Send notification to client
-    await base44.functions.invoke('sendTicketReplyNotification', {
-      ticketId: newTicket.id,
-      displayId,
-      subject: formData.subject,
-      client_email: formData.client_email,
-      client_name: formData.client_name,
-      agent_name: user.full_name,
-      reply_body: formData.description || "Your ticket has been created and assigned to our team."
-    });
+      console.log("Creating ticket with data:", ticketData);
+      const newTicket = await base44.entities.Ticket.create(ticketData);
+      console.log("Ticket created successfully:", newTicket);
 
-    // Send notification to assigned agent if one was assigned
-    if (formData.assigned_agent_email) {
-      await base44.functions.invoke('sendAgentAssignmentNotification', {
+      await base44.entities.Organization.update(org.id, { ticket_counter: newCounter });
+
+      // Create initial comment with description and attachments
+      if (formData.description || formData.attachments?.length > 0) {
+        await base44.entities.Comment.create({
+          ticket_id: newTicket.id,
+          ticket_display_id: displayId,
+          author_email: user.email,
+          author_name: user.full_name,
+          author_role: "agent",
+          body: formData.description || "New ticket created",
+          is_internal: false,
+          source: "web",
+          attachments: formData.attachments || []
+        });
+      }
+
+      // Send notification to client
+      await base44.functions.invoke('sendTicketReplyNotification', {
         ticketId: newTicket.id,
         displayId,
         subject: formData.subject,
-        agent_email: formData.assigned_agent_email,
-        agent_name: formData.assigned_agent_name,
-        client_name: formData.client_name,
         client_email: formData.client_email,
-        priority: formData.priority,
-        category: formData.category,
-        description: formData.description
+        client_name: formData.client_name,
+        agent_name: user.full_name,
+        reply_body: formData.description || "Your ticket has been created and assigned to our team."
       });
-    }
 
-    refetch();
+      // Send notification to assigned agent if one was assigned
+      if (formData.assigned_agent_email) {
+        await base44.functions.invoke('sendAgentAssignmentNotification', {
+          ticketId: newTicket.id,
+          displayId,
+          subject: formData.subject,
+          agent_email: formData.assigned_agent_email,
+          agent_name: formData.assigned_agent_name,
+          client_name: formData.client_name,
+          client_email: formData.client_email,
+          priority: formData.priority,
+          category: formData.category,
+          description: formData.description
+        });
+      }
+
+      setCreateOpen(false);
+      refetch();
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+      alert("Failed to create ticket: " + error.message);
+    }
   };
 
   const filteredTickets = tickets.filter(ticket => {
