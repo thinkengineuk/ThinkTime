@@ -31,6 +31,25 @@ export default function Layout({ children, currentPageName }) {
     queryFn: () => base44.auth.me()
   });
 
+  // Notify admins on first login
+  useEffect(() => {
+    const notifyFirstLogin = async () => {
+      if (!user || user.has_logged_in_before) return;
+      
+      try {
+        await base44.auth.updateMe({ has_logged_in_before: true });
+        await base44.functions.invoke('sendInviteAcceptedNotification', {
+          event: { type: 'update' },
+          data: { email: user.email, full_name: user.full_name }
+        });
+      } catch (error) {
+        console.error("Error notifying first login:", error);
+      }
+    };
+    
+    notifyFirstLogin();
+  }, [user?.email]);
+
   const isAgent = user?.user_type === "agent" || 
                   user?.user_type === "super_admin" || 
                   user?.role === "admin";
