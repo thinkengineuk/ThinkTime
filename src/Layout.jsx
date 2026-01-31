@@ -72,7 +72,7 @@ export default function Layout({ children, currentPageName }) {
     { name: "Clients", icon: User, page: "Clients" },
     { name: "Settings", icon: Settings, page: "Settings" },
   ] : [
-    { name: "My Tickets", icon: Ticket, page: "ClientPortal" },
+    { name: "My Tickets", icon: Clock, page: "ClientPortal" },
   ];
 
   const handleLogout = () => {
