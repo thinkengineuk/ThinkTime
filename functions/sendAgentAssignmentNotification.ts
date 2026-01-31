@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
           ${description ? `<p><strong>Description:</strong></p><p style="color: #475569;">${description}</p>` : ''}
         </div>
         
-        <p><strong>View Ticket:</strong> <a href="https://thinksupport.base44.app" style="color: #2563eb;">https://thinksupport.base44.app</a></p>
+        <p><strong>View Ticket:</strong> <a href="https://thinktime.base44.app" style="color: #2563eb;">https://thinktime.base44.app</a></p>
         
         <p>Please log in to your dashboard to view and respond to this ticket.</p>
         
