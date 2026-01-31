@@ -5,8 +5,15 @@ import { Clock, User, Building2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 
 export default function TicketCard({ ticket }) {
+  const { data: organization } = useQuery({
+    queryKey: ["organization", ticket.organization_id],
+    queryFn: () => base44.entities.Organization.get(ticket.organization_id),
+    enabled: !!ticket.organization_id
+  });
   const getInitials = (name) => {
     if (!name) return "?";
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
@@ -15,7 +22,7 @@ export default function TicketCard({ ticket }) {
   return (
     <Link to={createPageUrl(`TicketDetail?id=${ticket.id}`)}>
       <Card className="p-5 hover:shadow-xl transition-all duration-200 cursor-pointer border-l-4 group bg-white/70 backdrop-blur-sm border-slate-200/50"
-            style={{ borderLeftColor: ticket.organization_prefix === 'TE' ? '#3B82F6' : '#8B5CF6' }}>
+            style={{ borderLeftColor: organization?.branding_color || '#8B5CF6' }}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
