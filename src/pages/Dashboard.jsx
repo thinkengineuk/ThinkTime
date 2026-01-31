@@ -147,6 +147,18 @@ export default function Dashboard() {
       });
     }
 
+    console.log(`✅ New ticket created: ${displayId} (ID=${newTicket.id}, Org=${org.name}, Status=${newTicket.status})`);
+    
+    // Reset filters to ensure new ticket is visible
+    setSelectedOrg("all");
+    setViewMode("active");
+    setFilters({
+      status: "all",
+      priority: "all",
+      organization: "all",
+      search: ""
+    });
+    
     refetch();
   };
 
