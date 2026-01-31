@@ -31,6 +31,15 @@ export default function Layout({ children, currentPageName }) {
     queryFn: () => base44.auth.me()
   });
 
+  const { data: organizations = [] } = useQuery({
+    queryKey: ["organizations"],
+    queryFn: () => base44.entities.Organization.list()
+  });
+
+  // Get user's organization color
+  const userOrg = organizations.find(org => org.id === user?.organization_id);
+  const orgColor = userOrg?.branding_color || "#2563eb";
+
   // Notify admins on first login
   useEffect(() => {
     const notifyFirstLogin = async () => {
@@ -115,9 +124,13 @@ export default function Layout({ children, currentPageName }) {
                     to={createPageUrl(item.page)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       currentPageName === item.page 
-                        ? 'bg-blue-50 text-blue-600' 
+                        ? 'text-slate-600 hover:bg-slate-50' 
                         : 'text-slate-600 hover:bg-slate-50'
                     }`}
+                    style={currentPageName === item.page ? {
+                      backgroundColor: `${orgColor}15`,
+                      color: orgColor
+                    } : undefined}
                   >
                     <item.icon className="w-4 h-4" />
                     {item.name}
@@ -183,9 +196,13 @@ export default function Layout({ children, currentPageName }) {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     currentPageName === item.page 
-                      ? 'bg-blue-50 text-blue-600' 
+                      ? 'text-slate-600 hover:bg-slate-50' 
                       : 'text-slate-600 hover:bg-slate-50'
                   }`}
+                  style={currentPageName === item.page ? {
+                    backgroundColor: `${orgColor}15`,
+                    color: orgColor
+                  } : undefined}
                 >
                   <item.icon className="w-4 h-4" />
                   {item.name}
