@@ -21,35 +21,43 @@ Deno.serve(async (req) => {
     // Fetch ticket to get assigned engineer
     const ticket = await base44.asServiceRole.entities.Ticket.get(ticketId);
 
-    const firstName = client_name.split(' ')[0];
-    
-    const clientEmailBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb;">New Reply on Your Support Ticket</h2>
-        <p>Hi ${firstName},</p>
-        <p>${agent_name} has replied to your ticket <strong>#${displayId}</strong>:</p>
-        
-        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="margin-top: 0;">${subject}</h3>
-          <div style="color: #475569; line-height: 1.6;">
-            ${reply_body}
-          </div>
-        </div>
-        
-        <p>You can view and reply to this ticket by logging into your support portal: <a href="https://thinksupport.base44.app" style="color: #2563eb;">https://thinksupport.base44.app</a></p>
-        
-        <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-          This is an automated message from your support system.
-        </p>
-      </div>
-    `;
+    // Fetch client user to check if they have logged in before
+    const clientUsers = await base44.asServiceRole.entities.User.filter({ email: client_email });
+    const clientUser = clientUsers.length > 0 ? clientUsers[0] : null;
+    const hasClientLoggedInBefore = clientUser && clientUser.has_logged_in_before;
 
-    // Send email to client
-    await base44.asServiceRole.integrations.Core.SendEmail({
-      to: client_email,
-      subject: `Re: [${displayId}] ${subject}`,
-      body: clientEmailBody
-    });
+    // Only send email to client if they have logged in before
+    if (hasClientLoggedInBefore) {
+      const firstName = client_name.split(' ')[0];
+      
+      const clientEmailBody = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">New Reply on Your Support Ticket</h2>
+          <p>Hi ${firstName},</p>
+          <p>${agent_name} has replied to your ticket <strong>#${displayId}</strong>:</p>
+          
+          <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0;">${subject}</h3>
+            <div style="color: #475569; line-height: 1.6;">
+              ${reply_body}
+            </div>
+          </div>
+          
+          <p>You can view and reply to this ticket by logging into your support portal: <a href="https://thinksupport.base44.app" style="color: #2563eb;">https://thinksupport.base44.app</a></p>
+          
+          <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
+            This is an automated message from your support system.
+          </p>
+        </div>
+      `;
+
+      // Send email to client
+      await base44.asServiceRole.integrations.Core.SendEmail({
+        to: client_email,
+        subject: `Re: [${displayId}] ${subject}`,
+        body: clientEmailBody
+      });
+    }
 
     // Send email to assigned engineer if exists and not the same person who replied
     if (ticket?.assigned_agent_email && ticket.assigned_agent_email !== user.email) {
