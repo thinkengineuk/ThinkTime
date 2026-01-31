@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const emailSubject = `New Support Ticket: [${displayId}] ${subject}`;
     const emailBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb;">New Support Ticket Created</h2>
+        <h2 style="color: #2563eb;">New ThinkTime Support Ticket Created</h2>
         <p>A new support ticket has been submitted:</p>
         
         <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
@@ -54,10 +54,10 @@ Deno.serve(async (req) => {
           ${description ? `<p><strong>Description:</strong></p><p style="color: #475569;">${description}</p>` : ''}
         </div>
         
-        <p>Please log in to your admin dashboard to view and respond to this ticket.</p>
+        <p>Please log in to your admin dashboard to view and respond to this ticket: <a href="https://thinktime.base44.app" style="color: #2563eb;">https://thinktime.base44.app</a></p>
         
         <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-          This is an automated message from your support system.
+          This is an automated message from your ThinkTime support system.
         </p>
       </div>
     `;
