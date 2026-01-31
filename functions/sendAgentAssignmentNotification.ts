@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
         <p>Please log in to your dashboard to view and respond to this ticket.</p>
         
         <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-          This is an automated message from your support system.
+          This is an automated message from your ThinkTime support system.
         </p>
       </div>
     `;
