@@ -101,7 +101,7 @@ export default function Layout({ children, currentPageName }) {
                 className="flex items-center"
               >
                 <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/697352909f0a3344c678f67e/83e393016_BlueandBlackMinimalistBrandLogo.jpg" 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/697352909f0a3344c678f67e/34209a095_BlueandBlackMinimalistBrandLogo.png" 
                   alt="ThinkTime Logo" 
                   className="h-10 w-auto"
                 />
