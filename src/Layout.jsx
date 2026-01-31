@@ -98,14 +98,13 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex items-center gap-8">
               <Link 
                 to={createPageUrl(isAgent ? "Dashboard" : "ClientPortal")}
-                className="flex items-center gap-2"
+                className="flex items-center"
               >
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-500 to-blue-900 flex items-center justify-center shadow-lg shadow-sky-500/30">
-                  <Clock className="w-4 h-4 text-white" />
-                </div>
-                <span className="font-bold bg-gradient-to-r from-sky-500 to-blue-900 bg-clip-text text-transparent hidden sm:block">
-                  ThinkTime
-                </span>
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/697352909f0a3344c678f67e/83e393016_BlueandBlackMinimalistBrandLogo.jpg" 
+                  alt="ThinkTime Logo" 
+                  className="h-10 w-auto"
+                />
               </Link>
 
               {/* Desktop Nav */}
