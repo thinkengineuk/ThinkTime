@@ -47,14 +47,10 @@ export default function ClientPortal() {
   });
 
   const { data: tickets = [], isLoading } = useQuery({
-    queryKey: ["clientTickets", user?.email, user?.organization_id],
+    queryKey: ["clientTickets", user?.email],
     queryFn: async () => {
-      // Fetch tickets where user is the client OR tickets from their organization
-      const allTickets = await base44.entities.Ticket.list();
-      return allTickets.filter(ticket => 
-        ticket.client_email === user.email || 
-        (user.organization_id && ticket.organization_id === user.organization_id)
-      ).sort((a, b) => new Date(b.last_activity) - new Date(a.last_activity));
+      // Clients should only see tickets where they are the client_email
+      return base44.entities.Ticket.filter({ client_email: user.email }, '-last_activity');
     },
     enabled: !!user?.email
   });
