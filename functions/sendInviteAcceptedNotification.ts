@@ -25,15 +25,15 @@ Deno.serve(async (req) => {
     const emailPromises = admins.map(admin => 
       base44.asServiceRole.integrations.Core.SendEmail({
         to: admin.email,
-        subject: "New User Accepted Invite - ThinkSupport",
+        subject: "New User Accepted Invite - ThinkTime",
         body: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #0EA5E9;">User Invite Accepted</h2>
             <p><strong>${userData.email}</strong> has accepted the invite.</p>
             <p>Please login to update their user settings:</p>
-            <a href="https://thinksupport.base44.app" 
+            <a href="https://thinktime.base44.app" 
                style="display: inline-block; padding: 12px 24px; background-color: #0EA5E9; color: white; text-decoration: none; border-radius: 6px; margin-top: 10px;">
-              Login to ThinkSupport
+              Login to ThinkTime
             </a>
           </div>
         `

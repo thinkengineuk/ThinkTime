@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { 
   LayoutDashboard, 
-  Ticket, 
+  Clock, 
   Settings, 
   LogOut,
   User,
@@ -101,10 +101,10 @@ export default function Layout({ children, currentPageName }) {
                 className="flex items-center gap-2"
               >
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-500 to-blue-900 flex items-center justify-center shadow-lg shadow-sky-500/30">
-                  <Ticket className="w-4 h-4 text-white" />
+                  <Clock className="w-4 h-4 text-white" />
                 </div>
                 <span className="font-bold bg-gradient-to-r from-sky-500 to-blue-900 bg-clip-text text-transparent hidden sm:block">
-                  ThinkSupport
+                  ThinkTime
                 </span>
               </Link>
 

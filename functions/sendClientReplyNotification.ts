@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
           </div>
         ` : ''}
         
-        <p>Please log in to your admin dashboard to view and respond to this ticket: <a href="https://thinksupport.base44.app" style="color: #2563eb;">https://thinksupport.base44.app</a></p>
+        <p>Please log in to your admin dashboard to view and respond to this ticket: <a href="https://thinktime.base44.app" style="color: #2563eb;">https://thinktime.base44.app</a></p>
         
         <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
           This is an automated message from your support system.

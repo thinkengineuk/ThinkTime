@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
             </div>
           </div>
           
-          <p>You can view and reply to this ticket by logging into your support portal: <a href="https://thinksupport.base44.app" style="color: #2563eb;">https://thinksupport.base44.app</a></p>
+          <p>You can view and reply to this ticket by logging into your support portal: <a href="https://thinktime.base44.app" style="color: #2563eb;">https://thinktime.base44.app</a></p>
           
           <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
             This is an automated message from your support system.
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
             </div>
           </div>
           
-          <p>View ticket details: <a href="https://thinksupport.base44.app" style="color: #2563eb;">https://thinksupport.base44.app</a></p>
+          <p>View ticket details: <a href="https://thinktime.base44.app" style="color: #2563eb;">https://thinktime.base44.app</a></p>
           
           <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
             This is an automated message from your support system.
