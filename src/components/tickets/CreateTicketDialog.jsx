@@ -9,6 +9,7 @@ import AttachmentUploader from "./AttachmentUploader";
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function CreateTicketDialog({ 
   open, 
@@ -21,6 +22,7 @@ export default function CreateTicketDialog({
 }) {
   const [loading, setLoading] = useState(false);
   const [attachments, setAttachments] = useState([]);
+  const [clientMode, setClientMode] = useState("existing");
   const [form, setForm] = useState({
     subject: "",
     description: "",
@@ -77,7 +79,7 @@ export default function CreateTicketDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Create New Ticket</DialogTitle>
         </DialogHeader>
@@ -103,31 +105,60 @@ export default function CreateTicketDialog({
           )}
 
           {!isClient && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label>Client *</Label>
-              <Select
-                required
-                value={form.client_email}
-                onValueChange={(email) => {
-                  const selectedClient = clientUsers.find(user => user.email === email);
-                  setForm({
-                    ...form,
-                    client_email: email,
-                    client_name: selectedClient ? selectedClient.full_name : ""
-                  });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select client" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clientUsers.map(client => (
-                    <SelectItem key={client.email} value={client.email}>
-                      {client.full_name} ({client.email}){getOrgName(client.organization_id)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioGroup value={clientMode} onValueChange={setClientMode} className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="existing" id="existing" />
+                  <Label htmlFor="existing" className="font-normal cursor-pointer">Existing Client</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="new" id="new" />
+                  <Label htmlFor="new" className="font-normal cursor-pointer">New Client</Label>
+                </div>
+              </RadioGroup>
+
+              {clientMode === "existing" ? (
+                <Select
+                  required
+                  value={form.client_email}
+                  onValueChange={(email) => {
+                    const selectedClient = clientUsers.find(user => user.email === email);
+                    setForm({
+                      ...form,
+                      client_email: email,
+                      client_name: selectedClient ? selectedClient.full_name : ""
+                    });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clientUsers.map(client => (
+                      <SelectItem key={client.email} value={client.email}>
+                        {client.full_name} ({client.email}){getOrgName(client.organization_id)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="space-y-2">
+                  <Input
+                    required
+                    type="email"
+                    placeholder="Client email address"
+                    value={form.client_email}
+                    onChange={(e) => setForm({ ...form, client_email: e.target.value })}
+                  />
+                  <Input
+                    required
+                    placeholder="Client name"
+                    value={form.client_name}
+                    onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                  />
+                </div>
+              )}
             </div>
           )}
 
