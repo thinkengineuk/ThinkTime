@@ -21,7 +21,7 @@ export function decodeBase44(str) {
 }
 
 export function generateTicketId(prefix, counter) {
-  return `${prefix}-${encodeBase44(counter)}`;
+    return `${prefix}-${counter}`;
 }
 
 export function parseTicketId(displayId) {
