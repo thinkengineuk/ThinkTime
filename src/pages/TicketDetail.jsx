@@ -65,7 +65,8 @@ export default function TicketDetail() {
   const { data: agents = [] } = useQuery({
     queryKey: ["agents"],
     queryFn: async () => {
-      return base44.entities.UserProfile.filter({ user_type: "agent" });
+      const profiles = await base44.entities.UserProfile.list();
+      return profiles.filter(p => ["agent", "super_admin", "admin"].includes(p.user_type));
     }
   });
 
