@@ -75,10 +75,20 @@ export default function TicketDetail() {
     queryFn: () => base44.entities.Organization.list()
   });
 
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ["allUsers"],
+    queryFn: () => base44.entities.User.list(),
+    enabled: isAgent
+  });
+
   const getOrgName = (orgId) => {
     const org = organizations.find(o => o.id === orgId);
     return org ? ` (${org.name})` : '';
   };
+
+  const clientUsers = allUsers.filter(u => 
+    u.user_type !== "agent" && u.user_type !== "super_admin" && u.role !== "admin"
+  );
 
   const updateTicket = useMutation({
     mutationFn: (data) => base44.entities.Ticket.update(ticketId, { 
@@ -397,6 +407,46 @@ export default function TicketDetail() {
                   <Calendar className="w-4 h-4 text-slate-400" />
                   <span>{format(new Date(ticket.created_date), "MMM d, yyyy 'at' h:mm a")}</span>
                 </div>
+
+                {(user?.role === "admin" || user?.user_type === "super_admin") && (
+                  <div className="pt-3 border-t border-slate-200">
+                    <label className="text-xs text-slate-500 block mb-2">Link to Client</label>
+                    <Select
+                      value={ticket.client_email || ""}
+                      onValueChange={async (newClientEmail) => {
+                        if (!newClientEmail) return;
+                        
+                        const client = clientUsers.find(c => c.email === newClientEmail);
+                        if (client) {
+                          await updateTicket.mutateAsync({
+                            client_email: client.email,
+                            client_name: client.full_name
+                          });
+                          
+                          await base44.functions.invoke('sendTicketLinkedNotification', {
+                            displayId: ticket.display_id,
+                            subject: ticket.subject,
+                            client_email: client.email,
+                            client_name: client.full_name
+                          });
+                          
+                          toast.success(`Ticket linked to ${client.full_name}`);
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select client..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clientUsers.map(client => (
+                          <SelectItem key={client.id} value={client.email}>
+                            {client.full_name} ({client.email})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
             </Card>
 
