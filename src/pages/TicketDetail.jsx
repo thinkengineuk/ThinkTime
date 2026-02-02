@@ -33,6 +33,7 @@ import { format } from "date-fns";
 import { StatusBadge, PriorityBadge } from "@/components/tickets/TicketStatusBadge";
 import CommentThread from "@/components/tickets/CommentThread";
 import ReplyComposer from "@/components/tickets/ReplyComposer";
+import TimeTracker from "@/components/tickets/TimeTracker";
 import { toast } from "sonner";
 
 export default function TicketDetail() {
