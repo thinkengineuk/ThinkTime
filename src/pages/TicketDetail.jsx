@@ -137,6 +137,32 @@ export default function TicketDetail() {
     }
   });
 
+  const addTimeLog = useMutation({
+    mutationFn: async (data) => {
+      const timeLog = await base44.entities.TimeLog.create({
+        ticket_id: ticketId,
+        ticket_display_id: ticket.display_id,
+        user_email: user.email,
+        user_name: user.full_name,
+        organization_id: ticket.organization_id,
+        client_email: ticket.client_email,
+        client_name: ticket.client_name,
+        start_time: data.start_time.toISOString(),
+        end_time: data.end_time.toISOString(),
+        suggested_minutes: data.suggested_minutes,
+        actual_minutes: data.actual_minutes,
+        is_manually_edited: data.is_manually_edited,
+        edit_reason: data.edit_reason,
+        notes: data.notes
+      });
+      toast.success(`${data.actual_minutes} minutes logged`);
+      return timeLog;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["timeLogs", ticketId]);
+    }
+  });
+
   const handleResendEmail = async () => {
     setResending(true);
     const lastAgentComment = [...comments].reverse().find(c => c.author_role === "agent" && !c.is_internal);
