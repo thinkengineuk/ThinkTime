@@ -449,7 +449,9 @@ export default function TicketDetail() {
                     </div>
 
                     <div className="pt-3 border-t border-slate-200">
-                      <label className="text-xs text-slate-500 block mb-2">Add Watchers</label>
+                      <label className="text-xs text-slate-500 block mb-2">
+                        Add Watchers {ticket.watchers?.length > 0 && `(${ticket.watchers.length}/5)`}
+                      </label>
                       <Select
                         value=""
                         onValueChange={async (watcherEmail) => {
@@ -458,6 +460,12 @@ export default function TicketDetail() {
                           const watcher = clientUsers.find(c => c.email === watcherEmail);
                           if (watcher) {
                             const currentWatchers = ticket.watchers || [];
+                            
+                            if (currentWatchers.length >= 5) {
+                              toast.error("Maximum 5 watchers allowed per ticket");
+                              return;
+                            }
+                            
                             const isAlreadyWatcher = currentWatchers.some(w => w.email === watcherEmail);
                             
                             if (isAlreadyWatcher) {
@@ -469,12 +477,21 @@ export default function TicketDetail() {
                               watchers: [...currentWatchers, { email: watcher.email, name: watcher.full_name }]
                             });
                             
+                            await base44.functions.invoke('sendWatcherAddedNotification', {
+                              displayId: ticket.display_id,
+                              subject: ticket.subject,
+                              watcher_email: watcher.email,
+                              watcher_name: watcher.full_name,
+                              client_name: ticket.client_name
+                            });
+                            
                             toast.success(`Added ${watcher.full_name} as watcher`);
                           }
                         }}
+                        disabled={ticket.watchers?.length >= 5}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select client to add..." />
+                          <SelectValue placeholder={ticket.watchers?.length >= 5 ? "Maximum reached" : "Select client to add..."} />
                         </SelectTrigger>
                         <SelectContent>
                           {clientUsers
