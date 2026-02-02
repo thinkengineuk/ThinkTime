@@ -66,7 +66,7 @@ export default function TicketDetail() {
     queryKey: ["agents"],
     queryFn: async () => {
       const users = await base44.entities.User.list();
-      return users.filter(u => u.user_type === "agent" || u.user_type === "super_admin");
+      return users.filter(u => u.user_type === "agent" || u.user_type === "super_admin" || u.role === "admin");
     }
   });
 
