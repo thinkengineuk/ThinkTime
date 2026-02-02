@@ -49,8 +49,24 @@ export default function ClientPortal() {
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["clientTickets", user?.email],
     queryFn: async () => {
-      // Clients should only see tickets where they are the client_email
-      return base44.entities.Ticket.filter({ client_email: user.email }, '-last_activity');
+      if (!user?.email) return [];
+      
+      // Fetch tickets where user is the primary client
+      const clientTickets = await base44.entities.Ticket.filter({ client_email: user.email }, "-last_activity");
+      
+      // Fetch tickets where user is a watcher
+      const allTickets = await base44.entities.Ticket.list("-last_activity");
+      const watchedTickets = allTickets.filter(ticket => 
+        ticket.watchers?.some(w => w.email === user.email)
+      );
+      
+      // Combine and deduplicate by ticket ID
+      const combinedMap = new Map();
+      [...clientTickets, ...watchedTickets].forEach(ticket => {
+        combinedMap.set(ticket.id, ticket);
+      });
+      
+      return Array.from(combinedMap.values());
     },
     enabled: !!user?.email
   });
