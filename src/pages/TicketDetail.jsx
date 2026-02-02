@@ -244,6 +244,15 @@ export default function TicketDetail() {
               )}
             </Card>
 
+            {/* Time Tracker */}
+            {isAgent && (
+              <TimeTracker 
+                onSubmit={(data) => addTimeLog.mutate(data)}
+                ticketId={ticketId}
+                isAgent={isAgent}
+              />
+            )}
+
             {/* Comments */}
             <Card className="p-6 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
               <h2 className="font-semibold text-slate-900 mb-4">Conversation</h2>
