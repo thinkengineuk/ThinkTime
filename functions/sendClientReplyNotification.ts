@@ -114,6 +114,46 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Send email to watchers
+    if (ticket?.watchers && ticket.watchers.length > 0) {
+      for (const watcher of ticket.watchers) {
+        const watcherFirstName = watcher.name.split(' ')[0];
+        const watcherEmailBody = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">Update on Watched Ticket #${displayId}</h2>
+            <p>Hi ${watcherFirstName},</p>
+            <p><strong>${client_name}</strong> has replied to ticket <strong>#${displayId}</strong> that you are watching:</p>
+            
+            <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0;">${subject}</h3>
+              <div style="color: #475569; line-height: 1.6;">
+                ${reply_body}
+              </div>
+            </div>
+
+            ${conversationHtml ? `
+              <div style="margin-top: 20px;">
+                <h4 style="color: #475569; font-size: 14px; margin-bottom: 10px;">Recent Conversation:</h4>
+                ${conversationHtml}
+              </div>
+            ` : ''}
+            
+            <p>View ticket details: <a href="https://thinktime.base44.app" style="color: #2563eb;">https://thinktime.base44.app</a></p>
+            
+            <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
+              You are receiving this because you are watching this ticket.
+            </p>
+          </div>
+        `;
+
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: watcher.email,
+          subject: `Update: [${displayId}] ${subject}`,
+          body: watcherEmailBody
+        });
+      }
+    }
+
     return Response.json({ success: true, sentTo: uniqueEmails });
   } catch (error) {
     console.error('Error sending client reply notification:', error);
