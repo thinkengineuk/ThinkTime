@@ -37,7 +37,7 @@ export default function TimeTracker({
 
   const handleStop = () => {
     setIsRunning(false);
-    const minutes = Math.max(30, Math.round(elapsed / 60));
+    const minutes = Math.max(15, Math.round(elapsed / 60));
     setEditedMinutes(minutes);
   };
 
@@ -55,9 +55,9 @@ export default function TimeTracker({
       ticket_id: ticketId,
       start_time: new Date(Date.now() - elapsed * 1000),
       end_time: new Date(),
-      suggested_minutes: Math.max(30, Math.round(elapsed / 60)),
+      suggested_minutes: Math.max(15, Math.round(elapsed / 60)),
       actual_minutes: editedMinutes,
-      is_manually_edited: editedMinutes !== Math.max(30, Math.round(elapsed / 60)),
+      is_manually_edited: editedMinutes !== Math.max(15, Math.round(elapsed / 60)),
       edit_reason: isEditing ? notes : null,
       notes: notes
     });
@@ -139,7 +139,7 @@ export default function TimeTracker({
                 Suggested Time
               </label>
               <div className="text-lg font-semibold text-slate-900">
-                {Math.max(30, Math.round(elapsed / 60))} min
+                {Math.max(15, Math.round(elapsed / 60))} min
               </div>
             </div>
             <div>
@@ -168,7 +168,7 @@ export default function TimeTracker({
             </div>
           </div>
 
-          {editedMinutes !== Math.max(30, Math.round(elapsed / 60)) && (
+          {editedMinutes !== Math.max(15, Math.round(elapsed / 60)) && (
             <div>
               <label className="text-xs font-semibold text-slate-600 block mb-2">
                 Reason for Change
@@ -183,7 +183,7 @@ export default function TimeTracker({
             </div>
           )}
 
-          {editedMinutes === Math.max(30, Math.round(elapsed / 60)) && (
+          {editedMinutes === Math.max(15, Math.round(elapsed / 60)) && (
             <div>
               <label className="text-xs font-semibold text-slate-600 block mb-2">
                 Notes (optional)
