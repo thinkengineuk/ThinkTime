@@ -78,7 +78,7 @@ export default function TicketDetail() {
   const { data: allUsers = [] } = useQuery({
     queryKey: ["allUsers"],
     queryFn: () => base44.entities.User.list(),
-    enabled: isAgent
+    enabled: !!(user && (user.user_type === "agent" || user.user_type === "super_admin" || user.role === "admin"))
   });
 
   const getOrgName = (orgId) => {
