@@ -7,6 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { 
   ArrowLeft, 
   User, 
@@ -15,18 +26,21 @@ import {
   Tag,
   RefreshCw,
   Mail,
-  Loader2
+  Loader2,
+  Trash
 } from "lucide-react";
 import { format } from "date-fns";
 import { StatusBadge, PriorityBadge } from "@/components/tickets/TicketStatusBadge";
 import CommentThread from "@/components/tickets/CommentThread";
 import ReplyComposer from "@/components/tickets/ReplyComposer";
+import { toast } from "sonner";
 
 export default function TicketDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const ticketId = urlParams.get("id");
   const queryClient = useQueryClient();
   const [resending, setResending] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
@@ -72,6 +86,22 @@ export default function TicketDetail() {
       last_activity: new Date().toISOString() 
     }),
     onSuccess: () => queryClient.invalidateQueries(["ticket", ticketId])
+  });
+
+  const deleteTicket = useMutation({
+    mutationFn: async () => {
+      await base44.entities.Ticket.delete(ticketId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["clientTickets"]);
+      queryClient.invalidateQueries(["tickets"]);
+      toast.success("Ticket deleted successfully!");
+      window.location.replace(createPageUrl("Dashboard"));
+    },
+    onError: (error) => {
+      console.error("Error deleting ticket:", error);
+      toast.error("Failed to delete ticket. Please try again.");
+    }
   });
 
   const addComment = useMutation({
@@ -315,6 +345,30 @@ export default function TicketDetail() {
                     )}
                     Resend Last Email
                   </Button>
+
+                  {(user?.role === "admin" || user?.user_type === "super_admin") && (
+                    <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" className="w-full">
+                          <Trash className="w-4 h-4 mr-2" /> Delete Ticket
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete ticket {ticket.display_id} and all related comments.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteTicket.mutate()}>
+                            Continue
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </div>
               </Card>
             )}
