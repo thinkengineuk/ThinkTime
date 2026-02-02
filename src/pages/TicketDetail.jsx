@@ -128,32 +128,6 @@ export default function TicketDetail() {
         attachments: data.attachments || []
       });
 
-      // Send email notification if not internal
-      if (!data.isInternal) {
-        if (isAgent) {
-          // Agent replied, notify client
-          await base44.functions.invoke('sendTicketReplyNotification', {
-            ticketId,
-            displayId: ticket.display_id,
-            subject: ticket.subject,
-            client_email: ticket.client_email,
-            client_name: ticket.client_name,
-            agent_name: user.full_name,
-            reply_body: data.body
-          });
-        } else {
-          // Client replied, notify agent or admin
-          await base44.functions.invoke('sendClientReplyNotification', {
-            ticketId,
-            displayId: ticket.display_id,
-            subject: ticket.subject,
-            client_name: user.full_name,
-            assigned_agent_email: ticket.assigned_agent_email,
-            reply_body: data.body
-          });
-        }
-      }
-
       return comment;
     },
     onSuccess: () => {
