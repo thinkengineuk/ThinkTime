@@ -76,10 +76,18 @@ export default function TicketDetail() {
     queryFn: () => base44.entities.Organization.list()
   });
 
+  const isAgent = user?.user_type === "agent" || user?.user_type === "super_admin" || user?.role === "admin";
+
   const { data: allUsers = [] } = useQuery({
     queryKey: ["allUsers"],
     queryFn: () => base44.entities.User.list(),
-    enabled: !!(user && (user.user_type === "agent" || user.user_type === "super_admin" || user.role === "admin"))
+    enabled: !!(user && isAgent)
+  });
+
+  const { data: timeLogs = [] } = useQuery({
+    queryKey: ["timeLogs", ticketId],
+    queryFn: () => base44.entities.TimeLog.filter({ ticket_id: ticketId }, "-created_date"),
+    enabled: !!ticketId && isAgent
   });
 
   const getOrgName = (orgId) => {
@@ -192,8 +200,6 @@ export default function TicketDetail() {
     );
   }
 
-  const isAgent = user?.user_type === "agent" || user?.user_type === "super_admin" || user?.role === "admin";
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
@@ -251,6 +257,46 @@ export default function TicketDetail() {
                 ticketId={ticketId}
                 isAgent={isAgent}
               />
+            )}
+
+            {/* Time Logs Display */}
+            {isAgent && timeLogs.length > 0 && (
+              <Card className="p-6 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
+                <h2 className="font-semibold text-slate-900 mb-4">Logged Time</h2>
+                <div className="space-y-4">
+                  {Object.entries(timeLogs.reduce((acc, log) => {
+                    const userKey = log.user_email;
+                    if (!acc[userKey]) {
+                      acc[userKey] = { user_name: log.user_name, total_minutes: 0, logs: [] };
+                    }
+                    acc[userKey].total_minutes += log.actual_minutes;
+                    acc[userKey].logs.push(log);
+                    return acc;
+                  }, {})).map(([userEmail, { user_name, total_minutes, logs }]) => (
+                    <div key={userEmail} className="border-b border-slate-100 pb-4 last:border-b-0 last:pb-0">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-slate-700">{user_name}</h3>
+                        <span className="text-sm font-semibold text-slate-900">
+                          {Math.floor(total_minutes / 60)}h {total_minutes % 60}m
+                        </span>
+                      </div>
+                      <div className="mt-2 space-y-1.5">
+                        {logs.map((log, idx) => (
+                          <div key={idx} className="text-sm text-slate-600 flex items-start justify-between gap-2">
+                            <span className="flex-1">
+                              {format(new Date(log.created_date), "MMM d, h:mm a")} - {log.actual_minutes} min
+                              {log.notes && <span className="text-slate-500"> • {log.notes}</span>}
+                            </span>
+                            {log.is_manually_edited && (
+                              <Badge variant="outline" className="text-xs">Edited</Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
             )}
 
             {/* Comments */}
