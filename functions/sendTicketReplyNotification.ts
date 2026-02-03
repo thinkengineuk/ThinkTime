@@ -26,8 +26,8 @@ Deno.serve(async (req) => {
     const clientUser = clientUsers.length > 0 ? clientUsers[0] : null;
     const hasClientLoggedInBefore = clientUser && clientUser.has_logged_in_before;
 
-    // Only send email to client if they have logged in before
-    if (hasClientLoggedInBefore) {
+    // Always send email to client if client email is present
+    if (client_email) {
       const firstName = client_name.split(' ')[0];
       
       const clientEmailBody = `
