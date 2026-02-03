@@ -82,6 +82,13 @@ export default function Dashboard() {
       const org = organizations.find(o => o.id === formData.organization_id);
       if (!org) return;
 
+      // Update organization ticket counter FIRST to prevent race conditions
+      const newCounter = (org.ticket_counter || 0) + 1;
+      await base44.entities.Organization.update(org.id, { ticket_counter: newCounter });
+
+      // Now generate display ID with the reserved counter
+      const displayId = generateTicketId(org.prefix, newCounter);
+
       // Check if we need to create a new client user
       const allUsers = await base44.entities.User.list();
       const existingClient = allUsers.find(u => u.email === formData.client_email);
@@ -97,9 +104,6 @@ export default function Dashboard() {
         });
         console.log(`✅ Created placeholder user for: ${formData.client_email}`);
       }
-
-      const newCounter = (org.ticket_counter || 0) + 1;
-      const displayId = generateTicketId(org.prefix, newCounter);
 
       const ticketData = {
         subject: formData.subject,
@@ -119,8 +123,6 @@ export default function Dashboard() {
       };
 
       const newTicket = await base44.entities.Ticket.create(ticketData);
-
-      await base44.entities.Organization.update(org.id, { ticket_counter: newCounter });
 
       // Create initial comment with description and attachments
       if (formData.description || formData.attachments?.length > 0) {
