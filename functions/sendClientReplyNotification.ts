@@ -26,22 +26,24 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: You are not authorized to send notifications for this ticket' }, { status: 403 });
     }
 
-    // Get all admins/agents to notify
-    const users = await base44.asServiceRole.entities.User.list();
-    const admins = users.filter(u => 
-      u.role === 'admin' || 
-      u.user_type === 'super_admin'
-    );
-    const agents = users.filter(u => u.user_type === 'agent');
-
-    // Always include admins, plus assigned agent if exists
-    const emailList = [
-      ...admins.map(a => a.email),
-      ...(assigned_agent_email ? [assigned_agent_email] : agents.map(a => a.email))
-    ];
+    // Get all users to identify super_admins if needed
+    const allUsers = await base44.asServiceRole.entities.User.list();
     
-    // Remove duplicates
-    const uniqueEmails = [...new Set(emailList)];
+    let primaryRecipients = [];
+    if (ticket.assigned_agent_email) {
+      // If assigned, notify only the assigned agent
+      primaryRecipients.push(ticket.assigned_agent_email);
+    } else {
+      // If unassigned, notify only super_admins
+      const superAdmins = allUsers.filter(u => u.user_type === 'super_admin');
+      primaryRecipients.push(...superAdmins.map(u => u.email));
+    }
+
+    // Include watchers
+    const watcherEmails = ticket.watchers ? ticket.watchers.map(w => w.email) : [];
+    
+    // Combine and remove duplicates
+    const uniqueEmails = [...new Set([...primaryRecipients, ...watcherEmails])];
 
     if (uniqueEmails.length === 0) {
       console.warn('No recipients found for client reply notification');
