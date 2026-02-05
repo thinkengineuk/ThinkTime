@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
         
         <p>You will receive email notifications whenever there are updates to this ticket.</p>
         
-        <p>View ticket details: <a href="https://thinktime.base44.app" style="color: #2563eb;">https://thinktime.base44.app</a></p>
+        <p>View ticket details: <a href="https://thinktime.support" style="color: #2563eb;">https://thinktime.support</a></p>
         
         <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
           This is an automated message from your support system.
