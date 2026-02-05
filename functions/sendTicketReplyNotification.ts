@@ -59,13 +59,36 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Send email to assigned engineer if exists and not the same person who replied
+    // Fetch all users to identify admins
+    const allUsers = await base44.asServiceRole.entities.User.list();
+    const superAdmins = allUsers.filter(u => u.user_type === 'super_admin' || u.role === 'admin');
+    
+    const recipientEmails = new Set();
+
+    // Add assigned agent if exists and not the replier
     if (ticket?.assigned_agent_email && ticket.assigned_agent_email !== user.email) {
-      const engineerEmailBody = `
+      recipientEmails.add(ticket.assigned_agent_email);
+    }
+    
+    // Add super admins (excluding the person who replied)
+    superAdmins.forEach(admin => {
+      if (admin.email !== user.email) {
+        recipientEmails.add(admin.email);
+      }
+    });
+
+    // Add watchers
+    if (ticket?.watchers) {
+      ticket.watchers.forEach(watcher => recipientEmails.add(watcher.email));
+    }
+
+    // Send emails to all recipients
+    for (const email of recipientEmails) {
+      const emailBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2563eb;">Update on Assigned Ticket #${displayId}</h2>
-          <p>Hi ${ticket.assigned_agent_name},</p>
-          <p>${agent_name} has replied to ticket <strong>#${displayId}</strong> that is assigned to you:</p>
+          <h2 style="color: #2563eb;">Update on Ticket #${displayId}</h2>
+          <p>Hi,</p>
+          <p>${agent_name} has replied to ticket <strong>#${displayId}</strong>:</p>
           
           <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0;">${subject}</h3>
@@ -83,43 +106,10 @@ Deno.serve(async (req) => {
       `;
 
       await base44.asServiceRole.integrations.Core.SendEmail({
-        to: ticket.assigned_agent_email,
+        to: email,
         subject: `Update: [${displayId}] ${subject}`,
-        body: engineerEmailBody
+        body: emailBody
       });
-    }
-
-    // Send email to watchers
-    if (ticket?.watchers && ticket.watchers.length > 0) {
-      for (const watcher of ticket.watchers) {
-        const watcherFirstName = watcher.name.split(' ')[0];
-        const watcherEmailBody = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #2563eb;">Update on Watched Ticket #${displayId}</h2>
-            <p>Hi ${watcherFirstName},</p>
-            <p>${agent_name} has replied to ticket <strong>#${displayId}</strong> that you are watching:</p>
-            
-            <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="margin-top: 0;">${subject}</h3>
-              <div style="color: #475569; line-height: 1.6;">
-                ${reply_body}
-              </div>
-            </div>
-            
-            <p>View ticket details: <a href="https://thinktime.support" style="color: #2563eb;">https://thinktime.support</a></p>
-            
-            <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-              You are receiving this because you are watching this ticket.
-            </p>
-          </div>
-        `;
-
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: watcher.email,
-          subject: `Update: [${displayId}] ${subject}`,
-          body: watcherEmailBody
-        });
-      }
     }
 
     return Response.json({ success: true });
