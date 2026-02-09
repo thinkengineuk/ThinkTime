@@ -82,12 +82,11 @@ export default function Dashboard() {
       const org = organizations.find(o => o.id === formData.organization_id);
       if (!org) return;
 
-      // Update organization ticket counter FIRST to prevent race conditions
-      const newCounter = (org.ticket_counter || 0) + 1;
-      await base44.entities.Organization.update(org.id, { ticket_counter: newCounter });
-
-      // Now generate display ID with the reserved counter
-      const displayId = generateTicketId(org.prefix, newCounter);
+      // Generate unique ticket ID atomically via backend function
+      const { data: ticketIdData } = await base44.functions.invoke('generateTicketId', {
+        organization_id: formData.organization_id
+      });
+      const displayId = ticketIdData.display_id;
 
       // Check if we need to create a new client user
       const allUsers = await base44.entities.User.list();
