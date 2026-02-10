@@ -16,6 +16,13 @@ export default function CommentThread({ comments, currentUserEmail }) {
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
+  const formatBodyWithMentions = (body) => {
+    // Replace @mentions with styled spans
+    return body.replace(/@([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, 
+      '<span style="font-weight: 700; color: #2563eb;">@$1</span>'
+    );
+  };
+
   return (
     <div className="space-y-4">
       {comments.map((comment) => {
@@ -62,7 +69,7 @@ export default function CommentThread({ comments, currentUserEmail }) {
 
                 <div 
                   className="mt-2 text-slate-700 prose prose-sm max-w-none whitespace-pre-wrap"
-                  dangerouslySetInnerHTML={{ __html: comment.body.replace(/\n/g, '<br/>') }}
+                  dangerouslySetInnerHTML={{ __html: formatBodyWithMentions(comment.body).replace(/\n/g, '<br/>') }}
                 />
 
                 {comment.attachments?.length > 0 && (
