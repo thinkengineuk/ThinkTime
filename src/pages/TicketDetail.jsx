@@ -299,18 +299,22 @@ export default function TicketDetail() {
               </Card>
             )}
 
-            {/* Comments */}
+            {/* Conversation */}
             <Card className="p-6 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
               <h2 className="font-semibold text-slate-900 mb-4">Conversation</h2>
+              
+              {/* Reply Composer at Top */}
+              <div className="mb-6">
+                <ReplyComposer 
+                  onSubmit={(data) => addComment.mutate(data)}
+                  isAgent={isAgent}
+                  ticketStatus={ticket.status}
+                />
+              </div>
+
+              {/* Comment Thread */}
               <CommentThread comments={comments} currentUserEmail={user?.email} />
             </Card>
-
-            {/* Reply */}
-            <ReplyComposer 
-              onSubmit={(data) => addComment.mutate(data)}
-              isAgent={isAgent}
-              ticketStatus={ticket.status}
-            />
           </div>
 
           {/* Sidebar */}
