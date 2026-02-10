@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Megaphone, Plus, Send, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
 
 export default function AnnouncementManager() {
   const { data: user } = useQuery({
@@ -186,7 +187,9 @@ export default function AnnouncementManager() {
                        announcement.target_audience === "agents" ? "Agents" : "Clients"}
                     </Badge>
                   </div>
-                  <p className="text-sm text-slate-600 mb-2">{announcement.message}</p>
+                  <ReactMarkdown className="text-sm prose prose-sm prose-slate max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 mb-2">
+                    {announcement.message}
+                  </ReactMarkdown>
                   {announcement.link_url && (
                     <a 
                       href={announcement.link_url} 
