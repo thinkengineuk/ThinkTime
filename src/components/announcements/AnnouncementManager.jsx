@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Megaphone, Plus, Send, ExternalLink } from "lucide-react";
+import { Megaphone, Plus, Send, ExternalLink, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
@@ -21,6 +21,7 @@ export default function AnnouncementManager() {
 
   const isSuperAdminOrAdmin = user?.user_type === "super_admin" || user?.role === "admin";
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     message: "",
@@ -41,14 +42,18 @@ export default function AnnouncementManager() {
     onSuccess: () => {
       queryClient.invalidateQueries(["announcements"]);
       setDialogOpen(false);
-      setFormData({
-        title: "",
-        message: "",
-        link_url: "",
-        link_text: "Learn more",
-        target_audience: "all"
-      });
+      resetForm();
       toast.success("Announcement created! Click 'Publish' to send to users.");
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data) => base44.entities.Announcement.update(editingId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["announcements"]);
+      setDialogOpen(false);
+      resetForm();
+      toast.success("Announcement updated!");
     }
   });
 
@@ -72,10 +77,37 @@ export default function AnnouncementManager() {
     }
   });
 
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      message: "",
+      link_url: "",
+      link_text: "Learn more",
+      target_audience: "all"
+    });
+    setEditingId(null);
+  };
+
+  const handleOpenEdit = (announcement) => {
+    setFormData({
+      title: announcement.title,
+      message: announcement.message,
+      link_url: announcement.link_url || "",
+      link_text: announcement.link_text || "Learn more",
+      target_audience: announcement.target_audience
+    });
+    setEditingId(announcement.id);
+    setDialogOpen(true);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title.trim() || !formData.message.trim()) return;
-    createMutation.mutate(formData);
+    if (editingId) {
+      updateMutation.mutate(formData);
+    } else {
+      createMutation.mutate(formData);
+    }
   };
 
   return (
@@ -86,7 +118,10 @@ export default function AnnouncementManager() {
           <h2 className="text-lg font-semibold text-slate-900">Platform Updates</h2>
         </div>
         {isSuperAdminOrAdmin && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) resetForm();
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="w-4 h-4 mr-2" />
@@ -95,7 +130,7 @@ export default function AnnouncementManager() {
             </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Create Platform Update</DialogTitle>
+              <DialogTitle>{editingId ? "Edit Platform Update" : "Create Platform Update"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 mt-4">
               <div>
@@ -158,8 +193,8 @@ export default function AnnouncementManager() {
                 </Select>
               </div>
 
-              <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                Create Announcement
+              <Button type="submit" className="w-full" disabled={createMutation.isPending || updateMutation.isPending}>
+                {editingId ? "Update Announcement" : "Create Announcement"}
               </Button>
             </form>
           </DialogContent>
@@ -210,6 +245,13 @@ export default function AnnouncementManager() {
                 <div className="flex items-center gap-2">
                   {isSuperAdminOrAdmin && !announcement.is_published && (
                     <>
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleOpenEdit(announcement)}
+                      >
+                        <Pencil className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
                       <Button 
                         size="sm" 
                         onClick={() => publishMutation.mutate(announcement.id)}
