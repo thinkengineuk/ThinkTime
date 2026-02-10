@@ -8,7 +8,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 
-export default function TicketCard({ ticket }) {
+export default function TicketCard({ ticket, currentUserEmail }) {
   const { data: organization } = useQuery({
     queryKey: ["organization", ticket.organization_id],
     queryFn: () => base44.entities.Organization.get(ticket.organization_id),
