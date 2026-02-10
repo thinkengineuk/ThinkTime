@@ -683,20 +683,24 @@ export default function TicketDetail() {
             </Card>
 
             {/* Assigned Engineer */}
-            {ticket.assigned_agent_name && (
-              <Card className="p-4 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">Assigned Engineer</h3>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
-                    {ticket.assigned_agent_name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+            {ticket.assigned_agent_email && (() => {
+              const assignedAgentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
+              const displayName = assignedAgentProfile?.display_full_name || assignedAgentProfile?.full_name || ticket.assigned_agent_name;
+              return (
+                <Card className="p-4 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3">Assigned Engineer</h3>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                      {displayName?.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900">{displayName}</p>
+                      <p className="text-xs text-slate-500">{ticket.assigned_agent_email}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-slate-900">{ticket.assigned_agent_name}</p>
-                    <p className="text-xs text-slate-500">{ticket.assigned_agent_email}</p>
-                  </div>
-                </div>
-              </Card>
-            )}
+                </Card>
+              );
+            })()}
           </div>
         </div>
       </div>

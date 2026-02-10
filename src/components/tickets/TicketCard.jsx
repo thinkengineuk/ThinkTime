@@ -24,9 +24,13 @@ export default function TicketCard({ ticket }) {
   const clientProfile = userProfiles.find(p => p.email === ticket.client_email);
   const clientDisplayName = clientProfile?.display_full_name || ticket.client_name || ticket.client_email;
 
-  // Get assigned agent's display name - prefer profile, fallback to stored name
-  const agentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
-  const agentDisplayName = agentProfile?.display_full_name || agentProfile?.full_name || ticket.assigned_agent_name;
+  // Get assigned agent's display name from UserProfile - this ensures we show the updated display name
+  const getAgentDisplayName = () => {
+    if (!ticket.assigned_agent_email) return null;
+    const agentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
+    return agentProfile?.display_full_name || agentProfile?.full_name || ticket.assigned_agent_name;
+  };
+  const agentDisplayName = getAgentDisplayName();
 
   const getInitials = (name) => {
     if (!name) return "?";
