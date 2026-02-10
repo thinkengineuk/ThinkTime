@@ -466,7 +466,7 @@ export default function TicketDetail() {
                 </div>
                 <div className="flex items-center gap-2 text-slate-600">
                   <Building2 className="w-4 h-4 text-slate-400" />
-                  <span>{ticket.organization_prefix}</span>
+                  <span>{ticket.organization_prefix === 'CA' ? 'Cogs' : ticket.organization_prefix === 'TE' ? 'ThinkEngine' : ticket.organization_prefix}</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-600">
                   <Tag className="w-4 h-4 text-slate-400" />
