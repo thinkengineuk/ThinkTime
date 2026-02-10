@@ -49,20 +49,20 @@
  */
 import ClientPortal from './pages/ClientPortal';
 import Clients from './pages/Clients';
+import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import TicketDetail from './pages/TicketDetail';
-import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "ClientPortal": ClientPortal,
     "Clients": Clients,
+    "Dashboard": Dashboard,
     "Reports": Reports,
     "Settings": Settings,
     "TicketDetail": TicketDetail,
-    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {

@@ -592,7 +592,7 @@ export default function TicketDetail() {
                       onValueChange={async (watcherEmail) => {
                         if (!watcherEmail) return;
                         
-                        const watcher = allUsers.find(u => u.email === watcherEmail);
+                        const watcher = clientUsers.find(c => c.email === watcherEmail);
                         const watcherProfile = userProfiles.find(p => p.user_id === watcher?.id);
                         const watcherDisplayName = watcherProfile?.display_full_name || watcher?.full_name;
                         
@@ -632,13 +632,13 @@ export default function TicketDetail() {
                         <SelectValue placeholder={ticket.watchers?.length >= 5 ? "Maximum reached" : "Add watcher..."} />
                       </SelectTrigger>
                       <SelectContent>
-                        {allUsers
-                          .filter(u => u.email !== ticket.client_email)
-                          .map(user => {
-                            const userProfile = userProfiles.find(p => p.user_id === user.id);
+                        {clientUsers
+                          .filter(c => c.email !== ticket.client_email)
+                          .map(client => {
+                            const clientProfile = userProfiles.find(p => p.user_id === client.id);
                             return (
-                              <SelectItem key={user.id} value={user.email}>
-                                {userProfile?.display_full_name || user.full_name} ({user.email})
+                              <SelectItem key={client.id} value={client.email}>
+                                {clientProfile?.display_full_name || client.full_name} ({client.email})
                               </SelectItem>
                             );
                           })}
@@ -648,29 +648,23 @@ export default function TicketDetail() {
                   
                   {ticket.watchers?.length > 0 && (
                     <div className="mt-2 space-y-1">
-                      {ticket.watchers.map((watcher, idx) => {
-                        const watcherUser = allUsers.find(u => u.email === watcher.email);
-                        const watcherProfile = userProfiles.find(p => p.email === watcher.email);
-                        const displayName = watcherProfile?.display_full_name || watcherUser?.full_name || watcher.name;
-                        
-                        return (
-                          <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 px-2 py-1.5 rounded">
-                            <span className="text-slate-700">{displayName}</span>
-                            {(user?.role === "admin" || user?.user_type === "super_admin") && (
-                              <button
-                                onClick={async () => {
-                                  const newWatchers = ticket.watchers.filter(w => w.email !== watcher.email);
-                                  await updateTicket.mutateAsync({ watchers: newWatchers });
-                                  toast.success(`Removed ${displayName} from watchers`);
-                                }}
-                                className="text-red-500 hover:text-red-700"
-                              >
-                                ✕
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
+                      {ticket.watchers.map((watcher, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 px-2 py-1.5 rounded">
+                          <span className="text-slate-700">{watcher.name}</span>
+                          {(user?.role === "admin" || user?.user_type === "super_admin") && (
+                            <button
+                              onClick={async () => {
+                                const newWatchers = ticket.watchers.filter(w => w.email !== watcher.email);
+                                await updateTicket.mutateAsync({ watchers: newWatchers });
+                                toast.success(`Removed ${watcher.name} from watchers`);
+                              }}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   )}
                   
