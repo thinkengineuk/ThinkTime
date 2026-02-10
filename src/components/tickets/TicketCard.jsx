@@ -35,42 +35,57 @@ export default function TicketCard({ ticket }) {
 
   return (
     <Link to={createPageUrl(`TicketDetail?id=${ticket.id}`)}>
-      <Card className="p-5 hover:shadow-xl transition-all duration-200 cursor-pointer border-l-4 group bg-white/70 backdrop-blur-sm border-slate-200/50"
-            style={{ borderLeftColor: organization?.branding_color || '#8B5CF6' }}>
-        <div className="flex items-start justify-between gap-4">
+      <Card className="p-4 hover:shadow-lg transition-all duration-200 cursor-pointer group bg-white/70 backdrop-blur-sm border border-slate-200/50"
+            style={{ borderLeftColor: organization?.branding_color || '#8B5CF6', borderLeftWidth: '3px' }}>
+        <div className="flex items-center gap-6">
+          {/* Ticket ID & Badges */}
+          <div className="flex items-center gap-2 min-w-[160px]">
+            <span className="text-xs font-mono text-slate-600 font-semibold">
+              {ticket.display_id}
+            </span>
+            <StatusBadge status={ticket.status} />
+            <PriorityBadge priority={ticket.priority} />
+          </div>
+          
+          {/* Subject */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded">
-                {ticket.display_id}
-              </span>
-              <StatusBadge status={ticket.status} />
-              <PriorityBadge priority={ticket.priority} />
-            </div>
-            
             <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
               {ticket.subject}
             </h3>
-            
-            <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
-              <div className="flex items-center gap-1">
-                <User className="w-3 h-3" />
-                <span>{clientDisplayName}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                <span>{formatDistanceToNow(new Date(ticket.last_activity || ticket.created_date), { addSuffix: true })}</span>
-              </div>
-            </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            {agentDisplayName && (
-              <Avatar className="w-8 h-8">
-                <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                  {getInitials(agentDisplayName)}
-                </AvatarFallback>
-              </Avatar>
+          {/* Client */}
+          <div className="flex items-center gap-2 min-w-[180px]">
+            <Avatar className="w-7 h-7">
+              <AvatarFallback className="bg-slate-100 text-slate-600 text-[10px]">
+                {getInitials(clientDisplayName)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-slate-600 truncate">{clientDisplayName}</span>
+          </div>
+          
+          {/* Assigned Engineer */}
+          <div className="flex items-center gap-2 min-w-[180px]">
+            {agentDisplayName ? (
+              <>
+                <Avatar className="w-7 h-7">
+                  <AvatarFallback className="bg-blue-100 text-blue-600 text-[10px]">
+                    {getInitials(agentDisplayName)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm text-slate-600 truncate">{agentDisplayName}</span>
+              </>
+            ) : (
+              <span className="text-sm text-slate-400">Unassigned</span>
             )}
+          </div>
+          
+          {/* Last Activity */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 min-w-[120px] justify-end">
+            <Clock className="w-3.5 h-3.5" />
+            <span className="whitespace-nowrap">
+              {formatDistanceToNow(new Date(ticket.last_activity || ticket.created_date), { addSuffix: true })}
+            </span>
           </div>
         </div>
       </Card>
