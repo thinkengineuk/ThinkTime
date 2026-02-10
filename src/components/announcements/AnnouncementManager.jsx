@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,12 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 
 export default function AnnouncementManager() {
+  const { data: user } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => base44.auth.me()
+  });
+
+  const isSuperAdminOrAdmin = user?.user_type === "super_admin" || user?.role === "admin";
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -78,13 +84,14 @@ export default function AnnouncementManager() {
           <Megaphone className="w-5 h-5 text-blue-600" />
           <h2 className="text-lg font-semibold text-slate-900">Platform Updates</h2>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              New Announcement
-            </Button>
-          </DialogTrigger>
+        {isSuperAdminOrAdmin && (
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                New Announcement
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>Create Platform Update</DialogTitle>
@@ -155,7 +162,8 @@ export default function AnnouncementManager() {
               </Button>
             </form>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -197,7 +205,7 @@ export default function AnnouncementManager() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  {!announcement.is_published && (
+                  {isSuperAdminOrAdmin && !announcement.is_published && (
                     <>
                       <Button 
                         size="sm" 
