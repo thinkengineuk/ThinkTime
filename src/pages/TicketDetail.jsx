@@ -146,10 +146,21 @@ export default function TicketDetail() {
         attachments: data.attachments || []
       });
 
+      // Handle @mentions
+      if (data.body.includes('@')) {
+        await base44.functions.invoke('handleMentionNotifications', {
+          ticketId,
+          commentId: comment.id,
+          commentBody: data.body,
+          authorName: currentUserDisplayName
+        });
+      }
+
       return comment;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["comments", ticketId]);
+      queryClient.invalidateQueries(["notifications"]);
       base44.entities.Ticket.update(ticketId, { last_activity: new Date().toISOString() });
     }
   });
@@ -318,6 +329,54 @@ export default function TicketDetail() {
                   onSubmit={(data) => addComment.mutate(data)}
                   isAgent={isAgent}
                   ticketStatus={ticket.status}
+                  ticketParticipants={(() => {
+                    const participants = [];
+                    
+                    // Add client
+                    if (ticket.client_email) {
+                      const clientProfile = userProfiles.find(p => p.email === ticket.client_email);
+                      participants.push({
+                        email: ticket.client_email,
+                        name: clientProfile?.display_full_name || ticket.client_name
+                      });
+                    }
+                    
+                    // Add assigned agent
+                    if (ticket.assigned_agent_email) {
+                      const agentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
+                      participants.push({
+                        email: ticket.assigned_agent_email,
+                        name: agentProfile?.display_full_name || ticket.assigned_agent_name
+                      });
+                    }
+                    
+                    // Add watchers
+                    if (ticket.watchers) {
+                      ticket.watchers.forEach(w => {
+                        const watcherProfile = userProfiles.find(p => p.email === w.email);
+                        participants.push({
+                          email: w.email,
+                          name: watcherProfile?.display_full_name || w.name
+                        });
+                      });
+                    }
+                    
+                    // Add admins
+                    if (allUsers) {
+                      const admins = allUsers.filter(u => u.user_type === 'super_admin' || u.role === 'admin');
+                      admins.forEach(admin => {
+                        const adminProfile = userProfiles.find(p => p.user_id === admin.id);
+                        if (adminProfile && !participants.some(p => p.email === admin.email)) {
+                          participants.push({
+                            email: admin.email,
+                            name: adminProfile.display_full_name || admin.full_name
+                          });
+                        }
+                      });
+                    }
+                    
+                    return participants;
+                  })()}
                 />
               </div>
 
