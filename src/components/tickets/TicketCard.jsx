@@ -35,9 +35,10 @@ export default function TicketCard({ ticket }) {
 
   return (
     <Link to={createPageUrl(`TicketDetail?id=${ticket.id}`)}>
-      <Card className="p-4 hover:shadow-lg transition-all duration-200 cursor-pointer group bg-white/70 backdrop-blur-sm border border-slate-200/50"
+      <Card className="p-3 sm:p-4 hover:shadow-lg transition-all duration-200 cursor-pointer group bg-white/70 backdrop-blur-sm border border-slate-200/50"
             style={{ borderLeftColor: organization?.branding_color || '#8B5CF6', borderLeftWidth: '3px' }}>
-        <div className="flex items-center gap-4">
+        {/* Desktop Layout */}
+        <div className="hidden lg:flex items-center gap-4">
           {/* Ticket ID & Badges */}
           <div className="flex items-center gap-2 w-[180px] flex-shrink-0">
             <span className="text-xs font-mono text-slate-600 font-semibold whitespace-nowrap">
@@ -87,6 +88,53 @@ export default function TicketCard({ ticket }) {
               {formatDistanceToNow(new Date(ticket.last_activity || ticket.created_date), { addSuffix: true })}
             </span>
           </div>
+        </div>
+
+        {/* Mobile Layout */}
+        <div className="lg:hidden space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-mono text-slate-600 font-semibold">
+                  {ticket.display_id}
+                </span>
+                <StatusBadge status={ticket.status} />
+                <PriorityBadge priority={ticket.priority} />
+              </div>
+              <h3 className="font-semibold text-slate-900 text-sm line-clamp-2 group-hover:text-blue-600 transition-colors">
+                {ticket.subject}
+              </h3>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <div className="flex items-center gap-2">
+              <Avatar className="w-6 h-6 flex-shrink-0">
+                <AvatarFallback className="bg-slate-100 text-slate-600 text-[9px]">
+                  {getInitials(clientDisplayName)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="truncate max-w-[120px]">{clientDisplayName}</span>
+            </div>
+            
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3 h-3" />
+              <span className="whitespace-nowrap">
+                {formatDistanceToNow(new Date(ticket.last_activity || ticket.created_date), { addSuffix: true })}
+              </span>
+            </div>
+          </div>
+
+          {agentDisplayName && (
+            <div className="flex items-center gap-2 text-xs text-slate-600 pt-1 border-t border-slate-100">
+              <Avatar className="w-5 h-5 flex-shrink-0">
+                <AvatarFallback className="bg-blue-100 text-blue-600 text-[9px]">
+                  {getInitials(agentDisplayName)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="truncate">{agentDisplayName}</span>
+            </div>
+          )}
         </div>
       </Card>
     </Link>
