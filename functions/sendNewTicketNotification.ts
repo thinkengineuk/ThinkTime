@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
           <p><strong>Priority:</strong> ${priority}</p>
           <p><strong>Category:</strong> ${category}</p>
           <p><strong>Client:</strong> ${client_name} (${client_email})</p>
-          ${description ? `<p><strong>Description:</strong></p><p style="color: #475569;">${description}</p>` : ''}
+          ${description ? `<p><strong>Description:</strong></p><p style="color: #475569; white-space: pre-wrap;">${description.replace(/\n/g, '<br/>')}</p>` : ''}
         </div>
         
         <p>Please log in to your admin dashboard to view and respond to this ticket: <a href="https://thinktime.support" style="color: #2563eb;">https://thinktime.support</a></p>

@@ -72,8 +72,8 @@ Deno.serve(async (req) => {
             <div style="font-size: 12px; color: #64748b; margin-bottom: 5px;">
               <strong>${comment.author_name}</strong> (${authorLabel})
             </div>
-            <div style="color: #475569; line-height: 1.6;">
-              ${comment.body}
+            <div style="color: #475569; line-height: 1.6; white-space: pre-wrap;">
+              ${comment.body.replace(/\n/g, '<br/>')}
             </div>
           </div>
         `;
@@ -88,8 +88,8 @@ Deno.serve(async (req) => {
         
         <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
           <h3 style="margin-top: 0;">${subject}</h3>
-          <div style="color: #475569; line-height: 1.6;">
-            ${reply_body}
+          <div style="color: #475569; line-height: 1.6; white-space: pre-wrap;">
+            ${reply_body.replace(/\n/g, '<br/>')}
           </div>
         </div>
 
@@ -128,8 +128,8 @@ Deno.serve(async (req) => {
             
             <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
               <h3 style="margin-top: 0;">${subject}</h3>
-              <div style="color: #475569; line-height: 1.6;">
-                ${reply_body}
+              <div style="color: #475569; line-height: 1.6; white-space: pre-wrap;">
+                ${reply_body.replace(/\n/g, '<br/>')}
               </div>
             </div>
 
