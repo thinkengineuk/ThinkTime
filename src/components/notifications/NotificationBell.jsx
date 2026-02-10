@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react";
+import { Bell, Megaphone, AtSign, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -51,10 +51,21 @@ export default function NotificationBell({ userEmail }) {
     }
   });
 
+  const { data: announcements = [] } = useQuery({
+    queryKey: ["announcements"],
+    queryFn: () => base44.entities.Announcement.list(),
+    enabled: !!userEmail
+  });
+
   const handleNotificationClick = (notification) => {
     if (!notification.is_read) {
       markAsReadMutation.mutate(notification.id);
     }
+  };
+
+  const getAnnouncementLink = (notification) => {
+    const announcement = announcements.find(a => a.id === notification.announcement_id);
+    return announcement?.link_url;
   };
 
   return (
@@ -94,33 +105,100 @@ export default function NotificationBell({ userEmail }) {
             </div>
           ) : (
             <div className="divide-y">
-              {notifications.map(notification => (
-                <Link
-                  key={notification.id}
-                  to={createPageUrl(`TicketDetail?id=${notification.ticket_id}`)}
-                  onClick={() => handleNotificationClick(notification)}
-                  className={`block p-4 hover:bg-slate-50 transition-colors ${
-                    !notification.is_read ? 'bg-blue-50/50' : ''
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                      !notification.is_read ? 'bg-blue-500' : 'bg-slate-300'
-                    }`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-900">
-                        {notification.mentioned_by_name} mentioned you in #{notification.ticket_display_id}
-                      </p>
-                      <p className="text-xs text-slate-600 mt-1 line-clamp-2">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-1">
-                        {formatDistanceToNow(new Date(notification.created_date), { addSuffix: true })}
-                      </p>
+              {notifications.map(notification => {
+                const isAnnouncement = notification.type === 'announcement';
+                const announcementLink = isAnnouncement ? getAnnouncementLink(notification) : null;
+                
+                if (isAnnouncement && announcementLink) {
+                  return (
+                    <a
+                      key={notification.id}
+                      href={announcementLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => handleNotificationClick(notification)}
+                      className={`block p-4 hover:bg-slate-50 transition-colors ${
+                        !notification.is_read ? 'bg-blue-50/50' : ''
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <Megaphone className={`w-4 h-4 mt-1 flex-shrink-0 ${
+                          !notification.is_read ? 'text-blue-500' : 'text-slate-400'
+                        }`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 flex items-center gap-1">
+                            {notification.title}
+                            <ExternalLink className="w-3 h-3 text-slate-400" />
+                          </p>
+                          <p className="text-xs text-slate-600 mt-1 line-clamp-2">
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-slate-400 mt-1">
+                            {formatDistanceToNow(new Date(notification.created_date), { addSuffix: true })}
+                          </p>
+                        </div>
+                      </div>
+                    </a>
+                  );
+                }
+                
+                if (isAnnouncement) {
+                  return (
+                    <div
+                      key={notification.id}
+                      onClick={() => handleNotificationClick(notification)}
+                      className={`block p-4 hover:bg-slate-50 transition-colors cursor-pointer ${
+                        !notification.is_read ? 'bg-blue-50/50' : ''
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <Megaphone className={`w-4 h-4 mt-1 flex-shrink-0 ${
+                          !notification.is_read ? 'text-blue-500' : 'text-slate-400'
+                        }`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900">
+                            {notification.title}
+                          </p>
+                          <p className="text-xs text-slate-600 mt-1 line-clamp-2">
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-slate-400 mt-1">
+                            {formatDistanceToNow(new Date(notification.created_date), { addSuffix: true })}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  );
+                }
+                
+                return (
+                  <Link
+                    key={notification.id}
+                    to={createPageUrl(`TicketDetail?id=${notification.ticket_id}`)}
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`block p-4 hover:bg-slate-50 transition-colors ${
+                      !notification.is_read ? 'bg-blue-50/50' : ''
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <AtSign className={`w-4 h-4 mt-1 flex-shrink-0 ${
+                        !notification.is_read ? 'text-blue-500' : 'text-slate-400'
+                      }`} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-900">
+                          {notification.mentioned_by_name} mentioned you in #{notification.ticket_display_id}
+                        </p>
+                        <p className="text-xs text-slate-600 mt-1 line-clamp-2">
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">
+                          {formatDistanceToNow(new Date(notification.created_date), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </ScrollArea>
