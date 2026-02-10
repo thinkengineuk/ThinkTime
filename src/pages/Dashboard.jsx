@@ -223,31 +223,33 @@ export default function Dashboard() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="flex items-center gap-3">
             {selectedOrgData?.logo_url && (
               <img 
                 src={selectedOrgData.logo_url} 
                 alt={selectedOrgData.name} 
-                className="h-10 object-contain rounded"
+                className="h-8 sm:h-10 object-contain rounded"
               />
             )}
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-sky-500 to-blue-900 bg-clip-text text-transparent">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-sky-500 to-blue-900 bg-clip-text text-transparent">
                 Support Dashboard
               </h1>
-              <p className="text-slate-600 text-sm mt-1">Manage tickets across all organisations</p>
+              <p className="text-slate-600 text-xs sm:text-sm mt-1">Manage tickets across all organisations</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <OrgSwitcher 
-              organizations={organizations}
-              selectedOrg={selectedOrg}
-              onSelect={setSelectedOrg}
-            />
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 overflow-x-auto">
+              <OrgSwitcher 
+                organizations={organizations}
+                selectedOrg={selectedOrg}
+                onSelect={setSelectedOrg}
+              />
+            </div>
             <Button 
               onClick={() => setCreateOpen(true)}
-              className="bg-gradient-to-r from-sky-500 to-blue-900 hover:from-sky-600 hover:to-blue-950 shadow-lg shadow-sky-500/30"
+              className="bg-gradient-to-r from-sky-500 to-blue-900 hover:from-sky-600 hover:to-blue-950 shadow-lg shadow-sky-500/30 whitespace-nowrap"
             >
               <Plus className="w-4 h-4 mr-2" />
               New Ticket
