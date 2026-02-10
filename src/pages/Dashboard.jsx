@@ -104,6 +104,17 @@ export default function Dashboard() {
         console.log(`✅ Created placeholder user for: ${formData.client_email}`);
       }
 
+      // Auto-assign to karla@thinkengine.co if no agent specified
+      let assignedAgentEmail = formData.assigned_agent_email;
+      let assignedAgentName = formData.assigned_agent_name;
+      
+      if (!assignedAgentEmail) {
+        assignedAgentEmail = "karla@thinkengine.co";
+        const userProfiles = await base44.entities.UserProfile.list();
+        const karlaProfile = userProfiles.find(p => p.email === "karla@thinkengine.co");
+        assignedAgentName = karlaProfile?.display_full_name || karlaProfile?.full_name || "Karla Abbott";
+      }
+
       const ticketData = {
         subject: formData.subject,
         description: formData.description,
@@ -112,8 +123,8 @@ export default function Dashboard() {
         organization_id: formData.organization_id,
         client_email: formData.client_email,
         client_name: formData.client_name,
-        assigned_agent_email: formData.assigned_agent_email,
-        assigned_agent_name: formData.assigned_agent_name,
+        assigned_agent_email: assignedAgentEmail,
+        assigned_agent_name: assignedAgentName,
         display_id: displayId,
         organization_prefix: org.prefix,
         last_activity: new Date().toISOString(),
@@ -149,14 +160,14 @@ export default function Dashboard() {
         reply_body: formData.description || "Your ticket has been created and assigned to our team."
       });
 
-      // Send notification to assigned agent if one was assigned
-      if (formData.assigned_agent_email) {
+      // Send notification to assigned agent
+      if (assignedAgentEmail) {
         await base44.functions.invoke('sendAgentAssignmentNotification', {
           ticketId: newTicket.id,
           displayId,
           subject: formData.subject,
-          agent_email: formData.assigned_agent_email,
-          agent_name: formData.assigned_agent_name,
+          agent_email: assignedAgentEmail,
+          agent_name: assignedAgentName,
           client_name: formData.client_name,
           client_email: formData.client_email,
           priority: formData.priority,
