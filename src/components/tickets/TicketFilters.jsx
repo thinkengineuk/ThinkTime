@@ -7,20 +7,26 @@ export default function TicketFilters({
   filters, 
   setFilters, 
   organizations,
-  showOrgFilter = true 
+  showOrgFilter = true,
+  tickets = []
 }) {
   const handleReset = () => {
     setFilters({
       status: "all",
       priority: "all",
       organization: "all",
+      company: "all",
       search: ""
     });
   };
 
+  // Extract unique companies from tickets
+  const companies = [...new Set(tickets.map(t => t.client_name).filter(Boolean))].sort();
+
   const hasActiveFilters = filters.status !== "all" || 
                            filters.priority !== "all" || 
                            filters.organization !== "all" ||
+                           filters.company !== "all" ||
                            filters.search;
 
   return (
@@ -70,6 +76,20 @@ export default function TicketFilters({
             <SelectItem value="all">All Organisations</SelectItem>
             {organizations.map(org => (
               <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {companies.length > 0 && (
+        <Select value={filters.company} onValueChange={(v) => setFilters({ ...filters, company: v })}>
+          <SelectTrigger className="w-[160px] bg-slate-50 border-0">
+            <SelectValue placeholder="Company" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Companies</SelectItem>
+            {companies.map(company => (
+              <SelectItem key={company} value={company}>{company}</SelectItem>
             ))}
           </SelectContent>
         </Select>
