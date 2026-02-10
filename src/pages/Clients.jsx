@@ -15,16 +15,10 @@ export default function Clients() {
   const [search, setSearch] = useState("");
   const [editingUser, setEditingUser] = useState(null);
 
-  const { data: usersData = [], isLoading: isLoadingUsers } = useQuery({
+  const { data: users = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
     queryFn: () => base44.entities.User.list(),
     refetchInterval: 3000 // Auto-refresh every 3 seconds
-  });
-
-  const { data: userProfiles = [], isLoading: isLoadingProfiles } = useQuery({
-    queryKey: ["userProfiles"],
-    queryFn: () => base44.entities.UserProfile.list(),
-    refetchInterval: 3000
   });
 
   const { data: organizations = [], isLoading: isLoadingOrgs } = useQuery({
@@ -32,38 +26,18 @@ export default function Clients() {
     queryFn: () => base44.entities.Organization.list()
   });
 
-  // Merge users with their profiles
-  const users = usersData.map(user => {
-    const profile = userProfiles.find(p => p.user_id === user.id);
-    return {
-      ...user,
-      profile_id: profile?.id,
-      full_name: profile?.full_name || user.full_name,
-      company_name: profile?.company_name,
-      user_type: profile?.user_type || user.user_type,
-      organization_id: profile?.organization_id || user.organization_id
-    };
-  });
-
   const updateUserMutation = useMutation({
-    mutationFn: async ({ profileId, userId, user_type, organization_id, organization_name, company_name, full_name }) => {
-      // Update UserProfile with editable fields
-      await base44.entities.UserProfile.update(profileId, { 
-        full_name,
-        company_name,
-        user_type,
-        organization_id
-      });
-      // Also update User entity for non-editable display fields
+    mutationFn: async ({ userId, user_type, organization_id, organization_name, company_name, full_name }) => {
       await base44.entities.User.update(userId, { 
         user_type,
         organization_id,
-        organization_name
+        organization_name,
+        company_name,
+        full_name
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["users"]);
-      queryClient.invalidateQueries(["userProfiles"]);
       setEditingUser(null);
     },
   });
@@ -74,7 +48,6 @@ export default function Clients() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["users"]);
-      queryClient.invalidateQueries(["userProfiles"]);
       setEditingUser(null);
     },
   });
@@ -89,13 +62,11 @@ export default function Clients() {
   const handleUpdateUserType = (userId, newUserType) => {
     const user = users.find(u => u.id === userId);
     updateUserMutation.mutate({ 
-      profileId: user.profile_id,
       userId, 
       user_type: newUserType,
       organization_id: user.organization_id,
       organization_name: user.organization_name,
-      company_name: user.company_name,
-      full_name: user.full_name
+      company_name: user.company_name
     });
   };
 
@@ -103,13 +74,11 @@ export default function Clients() {
     const org = organizations.find(o => o.id === orgId);
     const user = users.find(u => u.id === userId);
     updateUserMutation.mutate({ 
-      profileId: user.profile_id,
       userId, 
       user_type: user.user_type || "client",
       organization_id: orgId,
       organization_name: org?.name,
-      company_name: user.company_name,
-      full_name: user.full_name
+      company_name: user.company_name
     });
   };
 
@@ -132,10 +101,8 @@ export default function Clients() {
   };
 
   const handleSaveUser = (userId, formData) => {
-    const user = users.find(u => u.id === userId);
     const org = organizations.find(o => o.id === formData.organization_id);
     updateUserMutation.mutate({
-      profileId: user.profile_id,
       userId,
       user_type: formData.user_type,
       organization_id: formData.organization_id,
@@ -184,7 +151,7 @@ export default function Clients() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoadingUsers || isLoadingProfiles || isLoadingOrgs ? (
+              {isLoadingUsers || isLoadingOrgs ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto" />
