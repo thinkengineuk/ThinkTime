@@ -27,7 +27,7 @@ export default function ClientPortal() {
 
   // Get current user's display name
   const currentUserProfile = userProfiles.find(p => p.user_id === user?.id);
-  const currentUserDisplayName = currentUserProfile?.display_full_name || user?.full_name;
+  const currentUserDisplayName = currentUserProfile?.display_full_name || user?.full_name || user?.email;
 
   const clientOrganizationId = user?.organization_id;
 
@@ -183,7 +183,7 @@ export default function ClientPortal() {
                 <h1 className="text-3xl font-bold" style={{ color: brandColor }}>
                   {organization?.name || "Support"} Portal
                 </h1>
-                <p className="text-slate-600 mt-1">Welcome back, {currentUserDisplayName || "User"}</p>
+                <p className="text-slate-600 mt-1">Welcome back, {currentUserDisplayName}</p>
               </div>
             </div>
             <Button 

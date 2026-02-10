@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StatusBadge, PriorityBadge } from "./TicketStatusBadge";
-import { Clock, User, Building2 } from "lucide-react";
+import { Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -23,14 +23,6 @@ export default function TicketCard({ ticket }) {
   // Get client's display name
   const clientProfile = userProfiles.find(p => p.email === ticket.client_email);
   const clientDisplayName = clientProfile?.display_full_name || ticket.client_name || ticket.client_email;
-
-  // Get assigned agent's display name from UserProfile - this ensures we show the updated display name
-  const getAgentDisplayName = () => {
-    if (!ticket.assigned_agent_email) return null;
-    const agentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
-    return agentProfile?.display_full_name || agentProfile?.full_name || ticket.assigned_agent_name;
-  };
-  const agentDisplayName = getAgentDisplayName();
 
   const getInitials = (name) => {
     if (!name) return "?";
@@ -71,15 +63,22 @@ export default function TicketCard({ ticket }) {
           
           {/* Assigned Engineer */}
           <div className="flex items-center gap-2 w-[160px] flex-shrink-0">
-            {agentDisplayName ? (
-              <>
-                <Avatar className="w-7 h-7 flex-shrink-0">
-                  <AvatarFallback className="bg-blue-100 text-blue-600 text-[10px]">
-                    {getInitials(agentDisplayName)}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm text-slate-600 truncate">{agentDisplayName}</span>
-              </>
+            {ticket.assigned_agent_email ? (
+              (() => {
+                const assignedAgentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
+                const displayName = assignedAgentProfile?.display_full_name || assignedAgentProfile?.full_name || ticket.assigned_agent_name;
+                if (!displayName) return <span className="text-sm text-slate-400">Unassigned</span>;
+                return (
+                  <>
+                    <Avatar className="w-7 h-7 flex-shrink-0">
+                      <AvatarFallback className="bg-blue-100 text-blue-600 text-[10px]">
+                        {getInitials(displayName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm text-slate-600 truncate">{displayName}</span>
+                  </>
+                );
+              })()
             ) : (
               <span className="text-sm text-slate-400">Unassigned</span>
             )}
@@ -129,16 +128,21 @@ export default function TicketCard({ ticket }) {
             </div>
           </div>
 
-          {agentDisplayName && (
-            <div className="flex items-center gap-2 text-xs text-slate-600 pt-1 border-t border-slate-100">
-              <Avatar className="w-5 h-5 flex-shrink-0">
-                <AvatarFallback className="bg-blue-100 text-blue-600 text-[9px]">
-                  {getInitials(agentDisplayName)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="truncate">{agentDisplayName}</span>
-            </div>
-          )}
+          {ticket.assigned_agent_email && (() => {
+            const assignedAgentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
+            const displayName = assignedAgentProfile?.display_full_name || assignedAgentProfile?.full_name || ticket.assigned_agent_name;
+            if (!displayName) return null;
+            return (
+              <div className="flex items-center gap-2 text-xs text-slate-600 pt-1 border-t border-slate-100">
+                <Avatar className="w-5 h-5 flex-shrink-0">
+                  <AvatarFallback className="bg-blue-100 text-blue-600 text-[9px]">
+                    {getInitials(displayName)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="truncate">{displayName}</span>
+              </div>
+            );
+          })()}
         </div>
       </Card>
     </Link>

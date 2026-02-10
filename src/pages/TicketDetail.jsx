@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -42,6 +42,7 @@ export default function TicketDetail() {
   const queryClient = useQueryClient();
   const [resending, setResending] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
@@ -98,6 +99,19 @@ export default function TicketDetail() {
     queryFn: () => base44.entities.TimeLog.filter({ ticket_id: ticketId }, "-created_date"),
     enabled: !!ticketId && isAgent
   });
+
+  // Redirect logic for unauthorized access
+  useEffect(() => {
+    if (!isLoading && !ticket && ticketId && user) {
+      console.log("Ticket not found or unauthorized", { ticketId, userEmail: user?.email });
+      toast.error("Ticket not found or you don't have access.");
+      if (user?.user_type === "client" || (!user?.user_type && user?.role === "user")) {
+        navigate(createPageUrl("ClientPortal"));
+      } else {
+        navigate(createPageUrl("Dashboard"));
+      }
+    }
+  }, [isLoading, ticket, ticketId, user, navigate]);
 
   const getOrgName = (orgId) => {
     const org = organizations.find(o => o.id === orgId);
@@ -215,10 +229,10 @@ export default function TicketDetail() {
     );
   }
 
-  if (!ticket) {
+  if (!ticket && !isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <p className="text-slate-500">Ticket not found</p>
+        <p className="text-slate-500">Ticket not found or access denied.</p>
       </div>
     );
   }
@@ -228,11 +242,11 @@ export default function TicketDetail() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {/* Back Button */}
         <Link 
-          to={createPageUrl("Dashboard")}
+          to={createPageUrl(isAgent ? "Dashboard" : "ClientPortal")}
           className="inline-flex items-center text-sm text-slate-500 hover:text-slate-700 mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
-          Back to Dashboard
+          Back to {isAgent ? "Dashboard" : "My Tickets"}
         </Link>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -686,12 +700,13 @@ export default function TicketDetail() {
             {ticket.assigned_agent_email && (() => {
               const assignedAgentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
               const displayName = assignedAgentProfile?.display_full_name || assignedAgentProfile?.full_name || ticket.assigned_agent_name;
+              if (!displayName) return null;
               return (
                 <Card className="p-4 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
                   <h3 className="text-sm font-semibold text-slate-700 mb-3">Assigned Engineer</h3>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
-                      {displayName?.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                      {displayName.split(" ").map(n => n[0]).join("").slice(0, 2)}
                     </div>
                     <div>
                       <p className="font-medium text-slate-900">{displayName}</p>
