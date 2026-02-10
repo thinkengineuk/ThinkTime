@@ -27,6 +27,7 @@ export default function EditUserDialog({
   isDeleting
 }) {
   const [formData, setFormData] = useState({
+    full_name: "",
     company_name: "",
     organization_id: "",
     user_type: "client"
@@ -36,6 +37,7 @@ export default function EditUserDialog({
   useEffect(() => {
     if (user) {
       setFormData({
+        full_name: user.full_name || "",
         company_name: user.company_name || "",
         organization_id: user.organization_id || "",
         user_type: user.user_type || "client"
@@ -70,7 +72,11 @@ export default function EditUserDialog({
 
             <div className="space-y-2">
               <Label>Full Name</Label>
-              <Input value={user.full_name || "-"} disabled className="bg-slate-50" />
+              <Input
+                value={formData.full_name}
+                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                placeholder="Enter full name"
+              />
             </div>
 
             <div className="space-y-2">
