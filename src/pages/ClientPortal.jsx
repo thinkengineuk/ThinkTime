@@ -169,7 +169,7 @@ export default function ClientPortal() {
         }}
       >
         <div className="absolute inset-0 bg-grid-slate-200/50 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]" />
-        <div className="max-w-4xl mx-auto relative">
+        <div className="max-w-7xl mx-auto relative">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {organization?.logo_url && (
@@ -213,7 +213,7 @@ export default function ClientPortal() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 mb-8">
           <Card className="p-5 bg-gradient-to-br from-white to-slate-50/50 border-slate-200/50 shadow-sm hover:shadow-md transition-shadow">
