@@ -24,9 +24,9 @@ export default function TicketCard({ ticket }) {
   const clientProfile = userProfiles.find(p => p.email === ticket.client_email);
   const clientDisplayName = clientProfile?.display_full_name || ticket.client_name || ticket.client_email;
 
-  // Get assigned agent's display name
+  // Get assigned agent's display name - always prefer profile data over stored name
   const agentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
-  const agentDisplayName = agentProfile?.display_full_name || agentProfile?.full_name || ticket.assigned_agent_name;
+  const agentDisplayName = agentProfile?.display_full_name || agentProfile?.full_name;
 
   const getInitials = (name) => {
     if (!name) return "?";
@@ -40,7 +40,7 @@ export default function TicketCard({ ticket }) {
         <div className="flex items-center gap-4">
           {/* Ticket ID & Badges */}
           <div className="flex items-center gap-2 w-[180px] flex-shrink-0">
-            <span className="text-xs font-mono text-slate-600 font-semibold">
+            <span className="text-xs font-mono text-slate-600 font-semibold whitespace-nowrap">
               {ticket.display_id}
             </span>
             <StatusBadge status={ticket.status} />
