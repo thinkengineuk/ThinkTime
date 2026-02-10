@@ -15,8 +15,7 @@ import {
   Save,
   Loader2,
   Users,
-  Palette,
-  Megaphone
+  Palette
 } from "lucide-react";
 import {
   Dialog,
@@ -24,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import AnnouncementManager from "@/components/announcements/AnnouncementManager";
+
 
 export default function Settings() {
   const [editingOrg, setEditingOrg] = useState(null);
@@ -119,10 +118,6 @@ export default function Settings() {
             <TabsTrigger value="team">
               <Users className="w-4 h-4 mr-2" />
               Team
-            </TabsTrigger>
-            <TabsTrigger value="announcements">
-              <Megaphone className="w-4 h-4 mr-2" />
-              Updates
             </TabsTrigger>
           </TabsList>
 
@@ -224,9 +219,6 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="announcements">
-            <AnnouncementManager />
-          </TabsContent>
         </Tabs>
 
         {/* Organization Dialog */}

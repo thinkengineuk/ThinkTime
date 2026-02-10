@@ -69,38 +69,56 @@ export default function Layout({ children, currentPageName }) {
     notifyFirstLogin();
   }, [user?.email]);
 
-  const isAgent = user?.user_type === "agent" || 
-                  user?.user_type === "super_admin" || 
-                  user?.role === "admin";
-
-  const adminPages = ["Dashboard", "Clients", "Settings"];
-  const isAdminPage = adminPages.includes(currentPageName);
+  const isSuperAdminOrAdmin = user?.user_type === "super_admin" || user?.role === "admin";
+  const isAgent = user?.user_type === "agent" || isSuperAdminOrAdmin;
   const isClient = user && !isAgent;
 
-  // Redirect clients away from admin pages
+  const adminRestrictedPages = ["Clients", "Reports", "Settings"];
+  const isPageAdminRestricted = adminRestrictedPages.includes(currentPageName);
+
+  // Redirect users to appropriate pages
   useEffect(() => {
     if (isLoadingProfile || !user) return;
     
-    if (isClient && isAdminPage) {
+    // Clients should only see ClientPortal
+    if (isClient && currentPageName !== "ClientPortal") {
       window.location.replace(createPageUrl("ClientPortal"));
     }
-  }, [isAgent, currentPageName, isLoadingProfile, user, isClient, isAdminPage]);
 
-  const navItems = isAgent ? [
-    { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
-    { name: "Clients", icon: User, page: "Clients" },
-    { name: "Reports", icon: Clock, page: "Reports" },
-    { name: "Settings", icon: Settings, page: "Settings" },
-  ] : [
-    { name: "My Tickets", icon: Clock, page: "ClientPortal" },
-  ];
+    // Regular agents should not see admin-restricted pages
+    if (isAgent && !isSuperAdminOrAdmin && isPageAdminRestricted) {
+      window.location.replace(createPageUrl("Dashboard"));
+    }
+  }, [isAgent, isSuperAdminOrAdmin, currentPageName, isLoadingProfile, user, isClient, isPageAdminRestricted]);
+
+  let navItems = [];
+
+  if (isSuperAdminOrAdmin) {
+    navItems = [
+      { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
+      { name: "Clients", icon: User, page: "Clients" },
+      { name: "Reports", icon: Clock, page: "Reports" },
+      { name: "Updates", icon: Building2, page: "Updates" },
+      { name: "Settings", icon: Settings, page: "Settings" },
+    ];
+  } else if (isAgent) {
+    navItems = [
+      { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
+      { name: "Updates", icon: Building2, page: "Updates" },
+    ];
+  } else {
+    navItems = [
+      { name: "My Tickets", icon: Clock, page: "ClientPortal" },
+      { name: "Updates", icon: Building2, page: "Updates" },
+    ];
+  }
 
   const handleLogout = () => {
     base44.auth.logout();
   };
 
-  // Block rendering of admin pages for clients - show loading instead
-  if (isLoadingProfile || (isClient && isAdminPage)) {
+  // Block rendering of restricted pages - show loading instead
+  if (isLoadingProfile || (isClient && currentPageName !== "ClientPortal" && currentPageName !== "Updates") || (isAgent && !isSuperAdminOrAdmin && isPageAdminRestricted)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-sky-50/30">
         <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
