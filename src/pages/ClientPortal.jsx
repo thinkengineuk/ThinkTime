@@ -22,7 +22,7 @@ export default function ClientPortal() {
 
   const { data: clientUserProfile } = useQuery({
     queryKey: ["clientUserProfile", user?.id],
-    queryFn: () => base44.entities.UserProfile.filter({ user_id: user.id }).then(res => res[0]),
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user.id }).then(res => res[0] || null),
     enabled: !!user,
   });
 

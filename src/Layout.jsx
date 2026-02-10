@@ -32,14 +32,27 @@ export default function Layout({ children, currentPageName }) {
     queryFn: () => base44.auth.me()
   });
 
+  const isSuperAdminOrAdmin = user?.user_type === "super_admin" || user?.role === "admin";
+  const isAgent = user?.user_type === "agent" || isSuperAdminOrAdmin;
+  const isClient = user && !isAgent;
+
   const { data: userProfiles = [] } = useQuery({
     queryKey: ["userProfiles"],
-    queryFn: () => base44.entities.UserProfile.list()
+    queryFn: () => base44.entities.UserProfile.list(),
+    enabled: !!user && isAgent
   });
 
-  // Get current user's display name
-  const currentUserProfile = userProfiles.find(p => p.user_id === user?.id);
-  const displayName = currentUserProfile?.display_full_name || user?.full_name || user?.email;
+  const { data: clientUserProfile } = useQuery({
+    queryKey: ["clientUserProfile", user?.id],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user.id }).then(res => res[0] || null),
+    enabled: !!user && isClient
+  });
+
+  const effectiveUserProfile = isAgent 
+    ? userProfiles.find(p => p.user_id === user?.id) 
+    : clientUserProfile;
+    
+  const displayName = effectiveUserProfile?.display_full_name || user?.full_name || user?.email;
 
   const { data: organizations = [] } = useQuery({
     queryKey: ["organizations"],
@@ -69,10 +82,6 @@ export default function Layout({ children, currentPageName }) {
     notifyFirstLogin();
   }, [user?.email]);
 
-  const isSuperAdminOrAdmin = user?.user_type === "super_admin" || user?.role === "admin";
-  const isAgent = user?.user_type === "agent" || isSuperAdminOrAdmin;
-  const isClient = user && !isAgent;
-
   const adminRestrictedPages = ["Clients", "Reports", "Settings"];
   const isPageAdminRestricted = adminRestrictedPages.includes(currentPageName);
 
@@ -80,8 +89,8 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     if (isLoadingProfile || !user) return;
     
-    // Clients should only see ClientPortal
-    if (isClient && currentPageName !== "ClientPortal") {
+    // Clients should only see ClientPortal, TicketDetail, and Updates
+    if (isClient && currentPageName !== "ClientPortal" && currentPageName !== "TicketDetail" && currentPageName !== "Updates") {
       window.location.replace(createPageUrl("ClientPortal"));
     }
 
@@ -118,7 +127,7 @@ export default function Layout({ children, currentPageName }) {
   };
 
   // Block rendering of restricted pages - show loading instead
-  if (isLoadingProfile || (isClient && currentPageName !== "ClientPortal" && currentPageName !== "Updates") || (isAgent && !isSuperAdminOrAdmin && isPageAdminRestricted)) {
+  if (isLoadingProfile || (isClient && currentPageName !== "ClientPortal" && currentPageName !== "TicketDetail" && currentPageName !== "Updates") || (isAgent && !isSuperAdminOrAdmin && isPageAdminRestricted)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-sky-50/30">
         <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
