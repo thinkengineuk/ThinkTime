@@ -61,8 +61,8 @@ export default function CommentThread({ comments, currentUserEmail }) {
                 </div>
 
                 <div 
-                  className="mt-2 text-slate-700 prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: comment.body }}
+                  className="mt-2 text-slate-700 prose prose-sm max-w-none whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ __html: comment.body.replace(/\n/g, '<br/>') }}
                 />
 
                 {comment.attachments?.length > 0 && (
