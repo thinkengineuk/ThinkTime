@@ -144,10 +144,11 @@ export default function NotificationBell({ userEmail }) {
                 
                 if (isAnnouncement) {
                   return (
-                    <div
+                    <Link
                       key={notification.id}
+                      to={createPageUrl("Updates")}
                       onClick={() => handleNotificationClick(notification)}
-                      className={`block p-4 hover:bg-slate-50 transition-colors cursor-pointer ${
+                      className={`block p-4 hover:bg-slate-50 transition-colors ${
                         !notification.is_read ? 'bg-blue-50/50' : ''
                       }`}
                     >
@@ -167,7 +168,7 @@ export default function NotificationBell({ userEmail }) {
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   );
                 }
                 
