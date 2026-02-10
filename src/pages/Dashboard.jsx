@@ -266,15 +266,15 @@ export default function Dashboard() {
         </div>
 
         {/* View Toggle */}
-        <div className="flex items-center justify-between mb-4">
-          <Tabs value={viewMode} onValueChange={setViewMode}>
-            <TabsList className="bg-white/70 backdrop-blur-sm border border-slate-200/50 shadow-sm">
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="inactive">Inactive</TabsTrigger>
-              <TabsTrigger value="all">All</TabsTrigger>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <Tabs value={viewMode} onValueChange={setViewMode} className="w-full sm:w-auto">
+            <TabsList className="bg-white/70 backdrop-blur-sm border border-slate-200/50 shadow-sm w-full sm:w-auto">
+              <TabsTrigger value="active" className="flex-1 sm:flex-none">Active</TabsTrigger>
+              <TabsTrigger value="inactive" className="flex-1 sm:flex-none">Inactive</TabsTrigger>
+              <TabsTrigger value="all" className="flex-1 sm:flex-none">All</TabsTrigger>
             </TabsList>
           </Tabs>
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-slate-500 text-right">
             {filteredTickets.length} ticket{filteredTickets.length !== 1 ? 's' : ''}
           </span>
         </div>
