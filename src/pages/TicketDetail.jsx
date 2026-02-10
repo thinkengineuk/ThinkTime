@@ -458,7 +458,7 @@ export default function TicketDetail() {
               <div className="space-y-3 text-sm">
                 <div className="flex items-center gap-2 text-slate-600">
                   <User className="w-4 h-4 text-slate-400" />
-                  <span>{ticket.client_name || ticket.client_email}</span>
+                  <span>{userProfiles.find(p => p.email === ticket.client_email)?.display_full_name || ticket.client_name || ticket.client_email}</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-600">
                   <Mail className="w-4 h-4 text-slate-400" />

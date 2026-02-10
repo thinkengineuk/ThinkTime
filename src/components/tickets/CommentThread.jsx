@@ -2,8 +2,15 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow, format } from "date-fns";
 import { Lock, Mail, Globe, Link as LinkIcon, Image, FileText } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 
 export default function CommentThread({ comments, currentUserEmail }) {
+  const { data: userProfiles = [] } = useQuery({
+    queryKey: ["userProfiles"],
+    queryFn: () => base44.entities.UserProfile.list()
+  });
+
   const getInitials = (name) => {
     if (!name) return "?";
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
@@ -40,7 +47,7 @@ export default function CommentThread({ comments, currentUserEmail }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-slate-900">
-                    {comment.author_name || comment.author_email}
+                    {userProfiles.find(p => p.email === comment.author_email)?.display_full_name || comment.author_name || comment.author_email}
                   </span>
                   {isAgent && (
                     <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs">

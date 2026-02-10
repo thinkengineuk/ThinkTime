@@ -14,6 +14,20 @@ export default function TicketCard({ ticket }) {
     queryFn: () => base44.entities.Organization.get(ticket.organization_id),
     enabled: !!ticket.organization_id
   });
+
+  const { data: userProfiles = [] } = useQuery({
+    queryKey: ["userProfiles"],
+    queryFn: () => base44.entities.UserProfile.list()
+  });
+
+  // Get client's display name
+  const clientProfile = userProfiles.find(p => p.email === ticket.client_email);
+  const clientDisplayName = clientProfile?.display_full_name || ticket.client_name || ticket.client_email;
+
+  // Get assigned agent's display name
+  const agentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
+  const agentDisplayName = agentProfile?.display_full_name || ticket.assigned_agent_name;
+
   const getInitials = (name) => {
     if (!name) return "?";
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
@@ -40,7 +54,7 @@ export default function TicketCard({ ticket }) {
             <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
               <div className="flex items-center gap-1">
                 <User className="w-3 h-3" />
-                <span>{ticket.client_name || ticket.client_email}</span>
+                <span>{clientDisplayName}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
@@ -50,10 +64,10 @@ export default function TicketCard({ ticket }) {
           </div>
           
           <div className="flex items-center gap-2">
-            {ticket.assigned_agent_name && (
+            {agentDisplayName && (
               <Avatar className="w-8 h-8">
                 <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                  {getInitials(ticket.assigned_agent_name)}
+                  {getInitials(agentDisplayName)}
                 </AvatarFallback>
               </Avatar>
             )}
