@@ -27,12 +27,13 @@ export default function Clients() {
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: async ({ userId, user_type, organization_id, organization_name, company_name }) => {
+    mutationFn: async ({ userId, user_type, organization_id, organization_name, company_name, full_name }) => {
       await base44.entities.User.update(userId, { 
         user_type,
         organization_id,
         organization_name,
-        company_name
+        company_name,
+        full_name
       });
     },
     onSuccess: () => {
@@ -106,7 +107,8 @@ export default function Clients() {
       user_type: formData.user_type,
       organization_id: formData.organization_id,
       organization_name: org?.name,
-      company_name: formData.company_name
+      company_name: formData.company_name,
+      full_name: formData.full_name
     });
   };
 
