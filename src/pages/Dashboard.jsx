@@ -299,7 +299,7 @@ export default function Dashboard() {
             </div>
           ) : (
             filteredTickets.map(ticket => (
-              <TicketCard key={ticket.id} ticket={ticket} currentUserEmail={user?.email} />
+              <TicketCard key={ticket.id} ticket={ticket} />
             ))
           )}
         </div>
