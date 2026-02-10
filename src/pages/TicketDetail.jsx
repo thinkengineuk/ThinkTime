@@ -648,23 +648,27 @@ export default function TicketDetail() {
                   
                   {ticket.watchers?.length > 0 && (
                     <div className="mt-2 space-y-1">
-                      {ticket.watchers.map((watcher, idx) => (
-                        <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 px-2 py-1.5 rounded">
-                          <span className="text-slate-700">{watcher.name}</span>
-                          {(user?.role === "admin" || user?.user_type === "super_admin") && (
-                            <button
-                              onClick={async () => {
-                                const newWatchers = ticket.watchers.filter(w => w.email !== watcher.email);
-                                await updateTicket.mutateAsync({ watchers: newWatchers });
-                                toast.success(`Removed ${watcher.name} from watchers`);
-                              }}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              ✕
-                            </button>
-                          )}
-                        </div>
-                      ))}
+                      {ticket.watchers.map((watcher, idx) => {
+                        const watcherProfile = userProfiles.find(p => p.email === watcher.email);
+                        const displayName = watcherProfile?.display_full_name || watcher.name;
+                        return (
+                          <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 px-2 py-1.5 rounded">
+                            <span className="text-slate-700">{displayName}</span>
+                            {(user?.role === "admin" || user?.user_type === "super_admin") && (
+                              <button
+                                onClick={async () => {
+                                  const newWatchers = ticket.watchers.filter(w => w.email !== watcher.email);
+                                  await updateTicket.mutateAsync({ watchers: newWatchers });
+                                  toast.success(`Removed ${displayName} from watchers`);
+                                }}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                   
