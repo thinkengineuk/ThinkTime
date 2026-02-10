@@ -361,15 +361,19 @@ export default function TicketDetail() {
                       });
                     }
                     
-                    // Add admins
+                    // Add admins and engineers to watch list
                     if (allUsers) {
-                      const admins = allUsers.filter(u => u.user_type === 'super_admin' || u.role === 'admin');
-                      admins.forEach(admin => {
-                        const adminProfile = userProfiles.find(p => p.user_id === admin.id);
-                        if (adminProfile && !participants.some(p => p.email === admin.email)) {
+                      const adminsAndEngineers = allUsers.filter(u => 
+                        u.user_type === 'super_admin' || 
+                        u.role === 'admin' || 
+                        u.user_type === 'agent'
+                      );
+                      adminsAndEngineers.forEach(member => {
+                        const memberProfile = userProfiles.find(p => p.user_id === member.id);
+                        if (memberProfile && !participants.some(p => p.email === member.email)) {
                           participants.push({
-                            email: admin.email,
-                            name: adminProfile.display_full_name || admin.full_name
+                            email: member.email,
+                            name: memberProfile.display_full_name || member.full_name
                           });
                         }
                       });

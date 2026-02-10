@@ -9,6 +9,11 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 
 export default function TicketCard({ ticket }) {
+  const { data: user } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => base44.auth.me()
+  });
+
   const { data: organization } = useQuery({
     queryKey: ["organization", ticket.organization_id],
     queryFn: () => base44.entities.Organization.get(ticket.organization_id),
@@ -19,6 +24,8 @@ export default function TicketCard({ ticket }) {
     queryKey: ["userProfiles"],
     queryFn: () => base44.entities.UserProfile.list()
   });
+
+  const isAssignedToMe = user && ticket.assigned_agent_email === user.email;
 
   // Get client's display name
   const clientProfile = userProfiles.find(p => p.email === ticket.client_email);
@@ -35,17 +42,22 @@ export default function TicketCard({ ticket }) {
 
   return (
     <Link to={createPageUrl(`TicketDetail?id=${ticket.id}`)}>
-      <Card className="p-3 sm:p-4 hover:shadow-lg transition-all duration-200 cursor-pointer group bg-white/70 backdrop-blur-sm border border-slate-200/50"
+      <Card className={`p-3 sm:p-4 hover:shadow-lg transition-all duration-200 cursor-pointer group bg-white/70 backdrop-blur-sm border border-slate-200/50 ${isAssignedToMe ? 'ring-2 ring-blue-300' : ''}`}
             style={{ borderLeftColor: organization?.branding_color || '#8B5CF6', borderLeftWidth: '3px' }}>
         {/* Desktop Layout */}
         <div className="hidden lg:flex items-center gap-4">
           {/* Ticket ID & Badges */}
-          <div className="flex items-center gap-2 w-[180px] flex-shrink-0">
+          <div className="flex items-center gap-2 w-[220px] flex-shrink-0">
             <span className="text-xs font-mono text-slate-600 font-semibold whitespace-nowrap">
               {ticket.display_id}
             </span>
             <StatusBadge status={ticket.status} />
             <PriorityBadge priority={ticket.priority} />
+            {isAssignedToMe && (
+              <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">
+                You
+              </span>
+            )}
           </div>
           
           {/* Subject */}
@@ -94,12 +106,17 @@ export default function TicketCard({ ticket }) {
         <div className="lg:hidden space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <span className="text-xs font-mono text-slate-600 font-semibold">
                   {ticket.display_id}
                 </span>
                 <StatusBadge status={ticket.status} />
                 <PriorityBadge priority={ticket.priority} />
+                {isAssignedToMe && (
+                  <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">
+                    You
+                  </span>
+                )}
               </div>
               <h3 className="font-semibold text-slate-900 text-sm line-clamp-2 group-hover:text-blue-600 transition-colors">
                 {ticket.subject}
