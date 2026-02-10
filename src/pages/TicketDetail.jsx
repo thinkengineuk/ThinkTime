@@ -469,123 +469,131 @@ export default function TicketDetail() {
                 </div>
 
                 {(user?.role === "admin" || user?.user_type === "super_admin") && (
-                  <>
-                    <div className="pt-3 border-t border-slate-200">
-                      <label className="text-xs text-slate-500 block mb-2">Link to Client</label>
-                      <Select
-                        value={ticket.client_email || ""}
-                        onValueChange={async (newClientEmail) => {
-                          if (!newClientEmail) return;
+                  <div className="pt-3 border-t border-slate-200">
+                    <label className="text-xs text-slate-500 block mb-2">Link to Client</label>
+                    <Select
+                      value={ticket.client_email || ""}
+                      onValueChange={async (newClientEmail) => {
+                        if (!newClientEmail) return;
+                        
+                        const client = clientUsers.find(c => c.email === newClientEmail);
+                        if (client) {
+                          await updateTicket.mutateAsync({
+                            client_email: client.email,
+                            client_name: client.full_name
+                          });
                           
-                          const client = clientUsers.find(c => c.email === newClientEmail);
-                          if (client) {
-                            await updateTicket.mutateAsync({
-                              client_email: client.email,
-                              client_name: client.full_name
-                            });
-                            
-                            await base44.functions.invoke('sendTicketLinkedNotification', {
-                              displayId: ticket.display_id,
-                              subject: ticket.subject,
-                              client_email: client.email,
-                              client_name: client.full_name
-                            });
-                            
-                            toast.success(`Ticket linked to ${client.full_name}`);
+                          await base44.functions.invoke('sendTicketLinkedNotification', {
+                            displayId: ticket.display_id,
+                            subject: ticket.subject,
+                            client_email: client.email,
+                            client_name: client.full_name
+                          });
+                          
+                          toast.success(`Ticket linked to ${client.full_name}`);
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select client..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clientUsers.map(client => (
+                          <SelectItem key={client.id} value={client.email}>
+                            {client.full_name} ({client.email})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Watchers Section - Visible to all, editable by admins only */}
+                <div className="pt-3 border-t border-slate-200">
+                  <label className="text-xs text-slate-500 block mb-2">
+                    Watchers {ticket.watchers?.length > 0 && `(${ticket.watchers.length}/5)`}
+                  </label>
+                  
+                  {(user?.role === "admin" || user?.user_type === "super_admin") && (
+                    <Select
+                      value=""
+                      onValueChange={async (watcherEmail) => {
+                        if (!watcherEmail) return;
+                        
+                        const watcher = clientUsers.find(c => c.email === watcherEmail);
+                        if (watcher) {
+                          const currentWatchers = ticket.watchers || [];
+                          
+                          if (currentWatchers.length >= 5) {
+                            toast.error("Maximum 5 watchers allowed per ticket");
+                            return;
                           }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select client..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clientUsers.map(client => (
+                          
+                          const isAlreadyWatcher = currentWatchers.some(w => w.email === watcherEmail);
+                          
+                          if (isAlreadyWatcher) {
+                            toast.error("This user is already a watcher");
+                            return;
+                          }
+                          
+                          await updateTicket.mutateAsync({
+                            watchers: [...currentWatchers, { email: watcher.email, name: watcher.full_name }]
+                          });
+                          
+                          await base44.functions.invoke('sendWatcherAddedNotification', {
+                            displayId: ticket.display_id,
+                            subject: ticket.subject,
+                            watcher_email: watcher.email,
+                            watcher_name: watcher.full_name,
+                            client_name: ticket.client_name
+                          });
+                          
+                          toast.success(`Added ${watcher.full_name} as watcher`);
+                        }
+                      }}
+                      disabled={ticket.watchers?.length >= 5}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={ticket.watchers?.length >= 5 ? "Maximum reached" : "Add watcher..."} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clientUsers
+                          .filter(c => c.email !== ticket.client_email)
+                          .map(client => (
                             <SelectItem key={client.id} value={client.email}>
                               {client.full_name} ({client.email})
                             </SelectItem>
                           ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-200">
-                      <label className="text-xs text-slate-500 block mb-2">
-                        Add Watchers {ticket.watchers?.length > 0 && `(${ticket.watchers.length}/5)`}
-                      </label>
-                      <Select
-                        value=""
-                        onValueChange={async (watcherEmail) => {
-                          if (!watcherEmail) return;
-                          
-                          const watcher = clientUsers.find(c => c.email === watcherEmail);
-                          if (watcher) {
-                            const currentWatchers = ticket.watchers || [];
-                            
-                            if (currentWatchers.length >= 5) {
-                              toast.error("Maximum 5 watchers allowed per ticket");
-                              return;
-                            }
-                            
-                            const isAlreadyWatcher = currentWatchers.some(w => w.email === watcherEmail);
-                            
-                            if (isAlreadyWatcher) {
-                              toast.error("This user is already a watcher");
-                              return;
-                            }
-                            
-                            await updateTicket.mutateAsync({
-                              watchers: [...currentWatchers, { email: watcher.email, name: watcher.full_name }]
-                            });
-                            
-                            await base44.functions.invoke('sendWatcherAddedNotification', {
-                              displayId: ticket.display_id,
-                              subject: ticket.subject,
-                              watcher_email: watcher.email,
-                              watcher_name: watcher.full_name,
-                              client_name: ticket.client_name
-                            });
-                            
-                            toast.success(`Added ${watcher.full_name} as watcher`);
-                          }
-                        }}
-                        disabled={ticket.watchers?.length >= 5}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={ticket.watchers?.length >= 5 ? "Maximum reached" : "Select client to add..."} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clientUsers
-                            .filter(c => c.email !== ticket.client_email)
-                            .map(client => (
-                              <SelectItem key={client.id} value={client.email}>
-                                {client.full_name} ({client.email})
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                      
-                      {ticket.watchers?.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          {ticket.watchers.map((watcher, idx) => (
-                            <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 px-2 py-1.5 rounded">
-                              <span className="text-slate-700">{watcher.name}</span>
-                              <button
-                                onClick={async () => {
-                                  const newWatchers = ticket.watchers.filter(w => w.email !== watcher.email);
-                                  await updateTicket.mutateAsync({ watchers: newWatchers });
-                                  toast.success(`Removed ${watcher.name} from watchers`);
-                                }}
-                                className="text-red-500 hover:text-red-700"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  
+                  {ticket.watchers?.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {ticket.watchers.map((watcher, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 px-2 py-1.5 rounded">
+                          <span className="text-slate-700">{watcher.name}</span>
+                          {(user?.role === "admin" || user?.user_type === "super_admin") && (
+                            <button
+                              onClick={async () => {
+                                const newWatchers = ticket.watchers.filter(w => w.email !== watcher.email);
+                                await updateTicket.mutateAsync({ watchers: newWatchers });
+                                toast.success(`Removed ${watcher.name} from watchers`);
+                              }}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              ✕
+                            </button>
+                          )}
                         </div>
-                      )}
+                      ))}
                     </div>
-                  </>
-                )}
+                  )}
+                  
+                  {!ticket.watchers?.length && (
+                    <p className="text-xs text-slate-400 mt-2">No watchers on this ticket</p>
+                  )}
+                </div>
               </div>
             </Card>
 
