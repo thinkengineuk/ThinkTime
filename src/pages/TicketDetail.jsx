@@ -108,6 +108,9 @@ export default function TicketDetail() {
     u.user_type !== "agent" && u.user_type !== "super_admin" && u.role !== "admin"
   );
 
+  // All users including agents for watchers
+  const allUsersForWatchers = allUsers;
+
   const updateTicket = useMutation({
     mutationFn: (data) => base44.entities.Ticket.update(ticketId, { 
       ...data, 
@@ -592,7 +595,7 @@ export default function TicketDetail() {
                       onValueChange={async (watcherEmail) => {
                         if (!watcherEmail) return;
                         
-                        const watcher = clientUsers.find(c => c.email === watcherEmail);
+                        const watcher = allUsersForWatchers.find(c => c.email === watcherEmail);
                         const watcherProfile = userProfiles.find(p => p.user_id === watcher?.id);
                         const watcherDisplayName = watcherProfile?.display_full_name || watcher?.full_name;
                         
@@ -632,13 +635,13 @@ export default function TicketDetail() {
                         <SelectValue placeholder={ticket.watchers?.length >= 5 ? "Maximum reached" : "Add watcher..."} />
                       </SelectTrigger>
                       <SelectContent>
-                        {clientUsers
+                        {allUsersForWatchers
                           .filter(c => c.email !== ticket.client_email)
-                          .map(client => {
-                            const clientProfile = userProfiles.find(p => p.user_id === client.id);
+                          .map(u => {
+                            const profile = userProfiles.find(p => p.user_id === u.id);
                             return (
-                              <SelectItem key={client.id} value={client.email}>
-                                {clientProfile?.display_full_name || client.full_name} ({client.email})
+                              <SelectItem key={u.id} value={u.email}>
+                                {profile?.display_full_name || u.full_name} ({u.email})
                               </SelectItem>
                             );
                           })}
