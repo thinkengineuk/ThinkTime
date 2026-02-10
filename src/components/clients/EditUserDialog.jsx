@@ -28,6 +28,7 @@ export default function EditUserDialog({
 }) {
   const [formData, setFormData] = useState({
     full_name: "",
+    display_full_name: "",
     company_name: "",
     organization_id: "",
     user_type: "client"
@@ -38,6 +39,7 @@ export default function EditUserDialog({
     if (user) {
       setFormData({
         full_name: user.full_name || "",
+        display_full_name: user.display_full_name || user.full_name || "",
         company_name: user.company_name || "",
         organization_id: user.organization_id || "",
         user_type: user.user_type || "client"
@@ -76,6 +78,15 @@ export default function EditUserDialog({
                 value={formData.full_name}
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                 placeholder="Enter full name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>User Full Name</Label>
+              <Input
+                value={formData.display_full_name}
+                onChange={(e) => setFormData({ ...formData, display_full_name: e.target.value })}
+                placeholder="Enter user full name"
               />
             </div>
 

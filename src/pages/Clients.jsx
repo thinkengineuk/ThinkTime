@@ -21,13 +21,28 @@ export default function Clients() {
     refetchInterval: 3000 // Auto-refresh every 3 seconds
   });
 
+  const { data: userProfiles = [], isLoading: isLoadingProfiles } = useQuery({
+    queryKey: ["userProfiles"],
+    queryFn: () => base44.entities.UserProfile.list()
+  });
+
   const { data: organizations = [], isLoading: isLoadingOrgs } = useQuery({
     queryKey: ["organizations"],
     queryFn: () => base44.entities.Organization.list()
   });
 
+  // Merge users with their profiles
+  const mergedUsers = users.map(user => {
+    const profile = userProfiles.find(p => p.user_id === user.id);
+    return {
+      ...user,
+      display_full_name: profile?.display_full_name,
+      profile_id: profile?.id
+    };
+  });
+
   const updateUserMutation = useMutation({
-    mutationFn: async ({ userId, user_type, organization_id, organization_name, company_name, full_name }) => {
+    mutationFn: async ({ userId, user_type, organization_id, organization_name, company_name, full_name, display_full_name, profile_id }) => {
       await base44.entities.User.update(userId, { 
         user_type,
         organization_id,
@@ -35,9 +50,17 @@ export default function Clients() {
         company_name,
         full_name
       });
+      
+      // Update UserProfile with display_full_name
+      if (profile_id && display_full_name !== undefined) {
+        await base44.entities.UserProfile.update(profile_id, {
+          display_full_name
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["users"]);
+      queryClient.invalidateQueries(["userProfiles"]);
       setEditingUser(null);
     },
   });
@@ -52,33 +75,36 @@ export default function Clients() {
     },
   });
 
-  const filteredUsers = users.filter(user =>
+  const filteredUsers = mergedUsers.filter(user =>
     user.email?.toLowerCase().includes(search.toLowerCase()) ||
     user.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+    user.display_full_name?.toLowerCase().includes(search.toLowerCase()) ||
     user.organization_name?.toLowerCase().includes(search.toLowerCase()) ||
     user.company_name?.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleUpdateUserType = (userId, newUserType) => {
-    const user = users.find(u => u.id === userId);
+    const user = mergedUsers.find(u => u.id === userId);
     updateUserMutation.mutate({ 
       userId, 
       user_type: newUserType,
       organization_id: user.organization_id,
       organization_name: user.organization_name,
-      company_name: user.company_name
+      company_name: user.company_name,
+      profile_id: user.profile_id
     });
   };
 
   const handleUpdateOrganization = (userId, orgId) => {
     const org = organizations.find(o => o.id === orgId);
-    const user = users.find(u => u.id === userId);
+    const user = mergedUsers.find(u => u.id === userId);
     updateUserMutation.mutate({ 
       userId, 
       user_type: user.user_type || "client",
       organization_id: orgId,
       organization_name: org?.name,
-      company_name: user.company_name
+      company_name: user.company_name,
+      profile_id: user.profile_id
     });
   };
 
@@ -102,13 +128,16 @@ export default function Clients() {
 
   const handleSaveUser = (userId, formData) => {
     const org = organizations.find(o => o.id === formData.organization_id);
+    const user = mergedUsers.find(u => u.id === userId);
     updateUserMutation.mutate({
       userId,
       user_type: formData.user_type,
       organization_id: formData.organization_id,
       organization_name: org?.name,
       company_name: formData.company_name,
-      full_name: formData.full_name
+      full_name: formData.full_name,
+      display_full_name: formData.display_full_name,
+      profile_id: user?.profile_id
     });
   };
 
@@ -143,6 +172,7 @@ export default function Clients() {
               <TableRow>
                 <TableHead>Email</TableHead>
                 <TableHead>Full Name</TableHead>
+                <TableHead>User Full Name</TableHead>
                 <TableHead>Company Name</TableHead>
                 <TableHead>Base44 Role</TableHead>
                 <TableHead>Organisation</TableHead>
@@ -151,15 +181,15 @@ export default function Clients() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoadingUsers || isLoadingOrgs ? (
+              {isLoadingUsers || isLoadingOrgs || isLoadingProfiles ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto" />
                   </TableCell>
                 </TableRow>
               ) : filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                  <TableCell colSpan={8} className="text-center py-8 text-slate-500">
                     No users found. Invite users from the Base44 dashboard.
                   </TableCell>
                 </TableRow>
@@ -168,6 +198,7 @@ export default function Clients() {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.email}</TableCell>
                     <TableCell>{user.full_name || "-"}</TableCell>
+                    <TableCell>{user.display_full_name || user.full_name || "-"}</TableCell>
                     <TableCell>{user.company_name || "-"}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
