@@ -76,7 +76,8 @@ export default function EditUserDialog({
               <Label>Full Name</Label>
               <Input
                 value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                disabled
+                className="bg-slate-50"
                 placeholder="Enter full name"
               />
             </div>
