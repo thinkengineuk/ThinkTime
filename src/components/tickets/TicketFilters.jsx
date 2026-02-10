@@ -30,8 +30,8 @@ export default function TicketFilters({
                            filters.search;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 p-4 bg-white rounded-xl border border-slate-100">
-      <div className="relative flex-1 min-w-[200px]">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 p-4 bg-white rounded-xl border border-slate-100">
+      <div className="relative flex-1 min-w-full sm:min-w-[200px]">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <Input
           placeholder="Search tickets..."
@@ -41,66 +41,68 @@ export default function TicketFilters({
         />
       </div>
 
-      <Select value={filters.status} onValueChange={(v) => setFilters({ ...filters, status: v })}>
-        <SelectTrigger className="w-[140px] bg-slate-50 border-0">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Status</SelectItem>
-          <SelectItem value="open">Open</SelectItem>
-          <SelectItem value="pending">Pending</SelectItem>
-          <SelectItem value="resolved">Resolved</SelectItem>
-          <SelectItem value="closed">Closed</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select value={filters.priority} onValueChange={(v) => setFilters({ ...filters, priority: v })}>
-        <SelectTrigger className="w-[140px] bg-slate-50 border-0">
-          <SelectValue placeholder="Priority" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Priority</SelectItem>
-          <SelectItem value="urgent">Urgent</SelectItem>
-          <SelectItem value="high">High</SelectItem>
-          <SelectItem value="medium">Medium</SelectItem>
-          <SelectItem value="low">Low</SelectItem>
-        </SelectContent>
-      </Select>
-
-      {showOrgFilter && organizations?.length > 0 && (
-        <Select value={filters.organization} onValueChange={(v) => setFilters({ ...filters, organization: v })}>
-          <SelectTrigger className="w-[160px] bg-slate-50 border-0">
-            <SelectValue placeholder="All Organisations" />
+      <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
+        <Select value={filters.status} onValueChange={(v) => setFilters({ ...filters, status: v })}>
+          <SelectTrigger className="bg-slate-50 border-0">
+            <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Organisations</SelectItem>
-            {organizations.map(org => (
-              <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
-            ))}
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="open">Open</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="resolved">Resolved</SelectItem>
+            <SelectItem value="closed">Closed</SelectItem>
           </SelectContent>
         </Select>
-      )}
 
-      {companies.length > 0 && (
-        <Select value={filters.company} onValueChange={(v) => setFilters({ ...filters, company: v })}>
-          <SelectTrigger className="w-[160px] bg-slate-50 border-0">
-            <SelectValue placeholder="All Companies" />
+        <Select value={filters.priority} onValueChange={(v) => setFilters({ ...filters, priority: v })}>
+          <SelectTrigger className="bg-slate-50 border-0">
+            <SelectValue placeholder="Priority" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Companies</SelectItem>
-            {companies.map(company => (
-              <SelectItem key={company} value={company}>{company}</SelectItem>
-            ))}
+            <SelectItem value="all">All Priority</SelectItem>
+            <SelectItem value="urgent">Urgent</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
           </SelectContent>
         </Select>
-      )}
 
-      {hasActiveFilters && (
-        <Button variant="ghost" size="sm" onClick={handleReset} className="text-slate-500">
-          <X className="w-4 h-4 mr-1" />
-          Clear
-        </Button>
-      )}
+        {showOrgFilter && organizations?.length > 0 && (
+          <Select value={filters.organization} onValueChange={(v) => setFilters({ ...filters, organization: v })}>
+            <SelectTrigger className="bg-slate-50 border-0">
+              <SelectValue placeholder="All Organisations" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Organisations</SelectItem>
+              {organizations.map(org => (
+                <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {companies.length > 0 && (
+          <Select value={filters.company} onValueChange={(v) => setFilters({ ...filters, company: v })}>
+            <SelectTrigger className="bg-slate-50 border-0">
+              <SelectValue placeholder="All Companies" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Companies</SelectItem>
+              {companies.map(company => (
+                <SelectItem key={company} value={company}>{company}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={handleReset} className="text-slate-500 col-span-2 sm:col-span-1">
+            <X className="w-4 h-4 mr-1" />
+            Clear
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
