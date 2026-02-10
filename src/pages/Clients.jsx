@@ -98,6 +98,11 @@ export default function Clients() {
     user.company_name?.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Group users by type
+  const admins = filteredUsers.filter(u => u.user_type === 'super_admin');
+  const engineers = filteredUsers.filter(u => u.user_type === 'agent');
+  const clients = filteredUsers.filter(u => !u.user_type || u.user_type === 'client');
+
   const handleUpdateUserType = (userId, newUserType) => {
     const user = mergedUsers.find(u => u.id === userId);
     updateUserMutation.mutate({ 
