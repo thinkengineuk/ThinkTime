@@ -592,7 +592,7 @@ export default function TicketDetail() {
                       onValueChange={async (watcherEmail) => {
                         if (!watcherEmail) return;
                         
-                        const watcher = clientUsers.find(c => c.email === watcherEmail);
+                        const watcher = allUsers.find(u => u.email === watcherEmail);
                         const watcherProfile = userProfiles.find(p => p.user_id === watcher?.id);
                         const watcherDisplayName = watcherProfile?.display_full_name || watcher?.full_name;
                         
@@ -632,13 +632,13 @@ export default function TicketDetail() {
                         <SelectValue placeholder={ticket.watchers?.length >= 5 ? "Maximum reached" : "Add watcher..."} />
                       </SelectTrigger>
                       <SelectContent>
-                        {clientUsers
-                          .filter(c => c.email !== ticket.client_email)
-                          .map(client => {
-                            const clientProfile = userProfiles.find(p => p.user_id === client.id);
+                        {allUsers
+                          .filter(u => u.email !== ticket.client_email)
+                          .map(user => {
+                            const userProfile = userProfiles.find(p => p.user_id === user.id);
                             return (
-                              <SelectItem key={client.id} value={client.email}>
-                                {clientProfile?.display_full_name || client.full_name} ({client.email})
+                              <SelectItem key={user.id} value={user.email}>
+                                {userProfile?.display_full_name || user.full_name} ({user.email})
                               </SelectItem>
                             );
                           })}
