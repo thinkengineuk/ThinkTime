@@ -60,9 +60,12 @@ export default function Dashboard() {
         fetchedTickets = await base44.entities.Ticket.filter({ organization_id: selectedOrg });
       }
       
-      // Filter tickets for engineers - they should only see tickets assigned to them
+      // Filter tickets for agents - they should see tickets assigned to them or where they are a watcher
       if (isAgent && !isSuperAdmin) {
-        fetchedTickets = fetchedTickets.filter(ticket => ticket.assigned_agent_email === user.email);
+        fetchedTickets = fetchedTickets.filter(ticket => 
+          ticket.assigned_agent_email === user.email || 
+          (ticket.watchers && ticket.watchers.some(watcher => watcher.email === user.email))
+        );
       }
       
       console.log("Fetched tickets:", fetchedTickets);
