@@ -71,6 +71,15 @@ export default function TicketDetail() {
     }
   });
 
+  const { data: userProfiles = [] } = useQuery({
+    queryKey: ["userProfiles"],
+    queryFn: () => base44.entities.UserProfile.list()
+  });
+
+  // Get current user's display name
+  const currentUserProfile = userProfiles.find(p => p.user_id === user?.id);
+  const currentUserDisplayName = currentUserProfile?.display_full_name || user?.full_name;
+
   const { data: organizations = [] } = useQuery({
     queryKey: ["organizations"],
     queryFn: () => base44.entities.Organization.list()
@@ -129,7 +138,7 @@ export default function TicketDetail() {
         ticket_id: ticketId,
         ticket_display_id: ticket.display_id,
         author_email: user.email,
-        author_name: user.full_name,
+        author_name: currentUserDisplayName,
         author_role: user.user_type === "client" ? "client" : "agent",
         body: data.body,
         is_internal: data.isInternal,
@@ -151,7 +160,7 @@ export default function TicketDetail() {
         ticket_id: ticketId,
         ticket_display_id: ticket.display_id,
         user_email: user.email,
-        user_name: user.full_name,
+        user_name: currentUserDisplayName,
         organization_id: ticket.organization_id,
         client_email: ticket.client_email,
         client_name: ticket.client_name,
@@ -366,7 +375,7 @@ export default function TicketDetail() {
                           assigned_agent_name: null
                         } : {
                           assigned_agent_email: v,
-                          assigned_agent_name: agent?.full_name || v
+                          assigned_agent_name: agent?.display_full_name || agent?.full_name || v
                         };
                         
                         await updateTicket.mutateAsync(updateData);
@@ -378,7 +387,7 @@ export default function TicketDetail() {
                             displayId: ticket.display_id,
                             subject: ticket.subject,
                             agent_email: v,
-                            agent_name: agent?.full_name || v,
+                            agent_name: agent?.display_full_name || agent?.full_name || v,
                             client_name: ticket.client_name,
                             client_email: ticket.client_email,
                             priority: ticket.priority,
@@ -395,7 +404,7 @@ export default function TicketDetail() {
                         <SelectItem value={null}>Unassigned</SelectItem>
                         {agents.map(agent => (
                           <SelectItem key={agent.id} value={agent.email}>
-                            {agent.full_name} ({agent.email}){getOrgName(agent.organization_id)}
+                            {agent.display_full_name || agent.full_name} ({agent.email}){getOrgName(agent.organization_id)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -477,20 +486,21 @@ export default function TicketDetail() {
                         if (!newClientEmail) return;
                         
                         const client = clientUsers.find(c => c.email === newClientEmail);
+                        const clientProfile = userProfiles.find(p => p.user_id === client?.id);
                         if (client) {
                           await updateTicket.mutateAsync({
                             client_email: client.email,
-                            client_name: client.full_name
+                            client_name: clientProfile?.display_full_name || client.full_name
                           });
                           
                           await base44.functions.invoke('sendTicketLinkedNotification', {
                             displayId: ticket.display_id,
                             subject: ticket.subject,
                             client_email: client.email,
-                            client_name: client.full_name
+                            client_name: clientProfile?.display_full_name || client.full_name
                           });
                           
-                          toast.success(`Ticket linked to ${client.full_name}`);
+                          toast.success(`Ticket linked to ${clientProfile?.display_full_name || client.full_name}`);
                         }
                       }}
                     >
@@ -498,11 +508,14 @@ export default function TicketDetail() {
                         <SelectValue placeholder="Select client..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {clientUsers.map(client => (
-                          <SelectItem key={client.id} value={client.email}>
-                            {client.full_name} ({client.email})
-                          </SelectItem>
-                        ))}
+                        {clientUsers.map(client => {
+                          const clientProfile = userProfiles.find(p => p.user_id === client.id);
+                          return (
+                            <SelectItem key={client.id} value={client.email}>
+                              {clientProfile?.display_full_name || client.full_name} ({client.email})
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
@@ -521,6 +534,9 @@ export default function TicketDetail() {
                         if (!watcherEmail) return;
                         
                         const watcher = clientUsers.find(c => c.email === watcherEmail);
+                        const watcherProfile = userProfiles.find(p => p.user_id === watcher?.id);
+                        const watcherDisplayName = watcherProfile?.display_full_name || watcher?.full_name;
+                        
                         if (watcher) {
                           const currentWatchers = ticket.watchers || [];
                           
@@ -537,18 +553,18 @@ export default function TicketDetail() {
                           }
                           
                           await updateTicket.mutateAsync({
-                            watchers: [...currentWatchers, { email: watcher.email, name: watcher.full_name }]
+                            watchers: [...currentWatchers, { email: watcher.email, name: watcherDisplayName }]
                           });
                           
                           await base44.functions.invoke('sendWatcherAddedNotification', {
                             displayId: ticket.display_id,
                             subject: ticket.subject,
                             watcher_email: watcher.email,
-                            watcher_name: watcher.full_name,
+                            watcher_name: watcherDisplayName,
                             client_name: ticket.client_name
                           });
                           
-                          toast.success(`Added ${watcher.full_name} as watcher`);
+                          toast.success(`Added ${watcherDisplayName} as watcher`);
                         }
                       }}
                       disabled={ticket.watchers?.length >= 5}
@@ -559,11 +575,14 @@ export default function TicketDetail() {
                       <SelectContent>
                         {clientUsers
                           .filter(c => c.email !== ticket.client_email)
-                          .map(client => (
-                            <SelectItem key={client.id} value={client.email}>
-                              {client.full_name} ({client.email})
-                            </SelectItem>
-                          ))}
+                          .map(client => {
+                            const clientProfile = userProfiles.find(p => p.user_id === client.id);
+                            return (
+                              <SelectItem key={client.id} value={client.email}>
+                                {clientProfile?.display_full_name || client.full_name} ({client.email})
+                              </SelectItem>
+                            );
+                          })}
                       </SelectContent>
                     </Select>
                   )}

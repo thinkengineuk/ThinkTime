@@ -170,9 +170,9 @@ export default function Clients() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
                 <TableHead>Full Name</TableHead>
                 <TableHead>User Full Name</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Company Name</TableHead>
                 <TableHead>Base44 Role</TableHead>
                 <TableHead>Organisation</TableHead>
@@ -196,9 +196,9 @@ export default function Clients() {
               ) : (
                 filteredUsers.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.email}</TableCell>
                     <TableCell>{user.full_name || "-"}</TableCell>
                     <TableCell>{user.display_full_name || user.full_name || "-"}</TableCell>
+                    <TableCell>{user.email}</TableCell>
                     <TableCell>{user.company_name || "-"}</TableCell>
                     <TableCell>
                       <Badge variant="outline">

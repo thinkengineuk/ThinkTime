@@ -31,6 +31,15 @@ export default function Layout({ children, currentPageName }) {
     queryFn: () => base44.auth.me()
   });
 
+  const { data: userProfiles = [] } = useQuery({
+    queryKey: ["userProfiles"],
+    queryFn: () => base44.entities.UserProfile.list()
+  });
+
+  // Get current user's display name
+  const currentUserProfile = userProfiles.find(p => p.user_id === user?.id);
+  const displayName = currentUserProfile?.display_full_name || user?.full_name || user?.email;
+
   const { data: organizations = [] } = useQuery({
     queryKey: ["organizations"],
     queryFn: () => base44.entities.Organization.list()
@@ -149,13 +158,13 @@ export default function Layout({ children, currentPageName }) {
                       <User className="w-4 h-4 text-slate-600" />
                     </div>
                     <span className="hidden sm:block text-sm font-medium text-slate-700">
-                      {user?.full_name || user?.email}
+                      {displayName}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">{user?.full_name}</p>
+                    <p className="text-sm font-medium">{displayName}</p>
                     <p className="text-xs text-slate-500">{user?.email}</p>
                   </div>
                   <DropdownMenuSeparator />

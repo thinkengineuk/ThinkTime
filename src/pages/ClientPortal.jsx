@@ -20,6 +20,15 @@ export default function ClientPortal() {
     queryFn: () => base44.auth.me()
   });
 
+  const { data: userProfiles = [] } = useQuery({
+    queryKey: ["userProfiles"],
+    queryFn: () => base44.entities.UserProfile.list()
+  });
+
+  // Get current user's display name
+  const currentUserProfile = userProfiles.find(p => p.user_id === user?.id);
+  const currentUserDisplayName = currentUserProfile?.display_full_name || user?.full_name;
+
   const clientOrganizationId = user?.organization_id;
 
   const { data: organization, isLoading: isLoadingOrganization, error: orgError } = useQuery({
@@ -94,7 +103,7 @@ export default function ClientPortal() {
         organization_id: organization.id,
         organization_prefix: organization.prefix,
         client_email: user.email,
-        client_name: user.full_name,
+        client_name: currentUserDisplayName,
         display_id: displayId,
         last_activity: new Date().toISOString(),
         status: "open",
@@ -111,7 +120,7 @@ export default function ClientPortal() {
           ticket_id: newTicket.id,
           ticket_display_id: displayId,
           author_email: user.email,
-          author_name: user.full_name,
+          author_name: currentUserDisplayName,
           author_role: "client",
           body: formData.description || "New ticket created",
           is_internal: false,
@@ -130,7 +139,7 @@ export default function ClientPortal() {
         description: formData.description,
         priority: formData.priority,
         category: formData.category,
-        client_name: user.full_name,
+        client_name: currentUserDisplayName,
         client_email: user.email,
         assigned_agent_email: formData.assigned_agent_email
       });
@@ -174,7 +183,7 @@ export default function ClientPortal() {
                 <h1 className="text-3xl font-bold" style={{ color: brandColor }}>
                   {organization?.name || "Support"} Portal
                 </h1>
-                <p className="text-slate-600 mt-1">Welcome back, {user?.full_name || "User"}</p>
+                <p className="text-slate-600 mt-1">Welcome back, {currentUserDisplayName || "User"}</p>
               </div>
             </div>
             <Button 
