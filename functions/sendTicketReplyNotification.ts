@@ -38,8 +38,8 @@ Deno.serve(async (req) => {
           
           <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0;">${subject}</h3>
-            <div style="color: #475569; line-height: 1.6;">
-              ${reply_body}
+            <div style="color: #475569; line-height: 1.6; white-space: pre-wrap;">
+              ${reply_body.replace(/\n/g, '<br/>')}
             </div>
           </div>
           
