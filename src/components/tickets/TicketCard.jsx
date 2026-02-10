@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { StatusBadge, PriorityBadge } from "./TicketStatusBadge";
-import { Clock, User, Building2 } from "lucide-react";
+import { Clock, User, Building2, Wrench } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -27,6 +28,8 @@ export default function TicketCard({ ticket, currentUserEmail }) {
   // Get assigned agent's display name - prefer profile, fallback to stored name
   const agentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
   const agentDisplayName = agentProfile?.display_full_name || agentProfile?.full_name || ticket.assigned_agent_name;
+  
+  const isAssignedToMe = ticket.assigned_agent_email === currentUserEmail;
 
   const getInitials = (name) => {
     if (!name) return "?";
@@ -40,12 +43,17 @@ export default function TicketCard({ ticket, currentUserEmail }) {
         {/* Desktop Layout */}
         <div className="hidden lg:flex items-center gap-4">
           {/* Ticket ID & Badges */}
-          <div className="flex items-center gap-2 w-[180px] flex-shrink-0">
+          <div className="flex items-center gap-2 w-[200px] flex-shrink-0">
             <span className="text-xs font-mono text-slate-600 font-semibold whitespace-nowrap">
               {ticket.display_id}
             </span>
             <StatusBadge status={ticket.status} />
             <PriorityBadge priority={ticket.priority} />
+            {isAssignedToMe && (
+              <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs px-1.5 py-0">
+                <Wrench className="w-3 h-3" />
+              </Badge>
+            )}
           </div>
           
           {/* Subject */}
@@ -94,12 +102,17 @@ export default function TicketCard({ ticket, currentUserEmail }) {
         <div className="lg:hidden space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <span className="text-xs font-mono text-slate-600 font-semibold">
                   {ticket.display_id}
                 </span>
                 <StatusBadge status={ticket.status} />
                 <PriorityBadge priority={ticket.priority} />
+                {isAssignedToMe && (
+                  <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs px-1.5 py-0">
+                    <Wrench className="w-3 h-3" />
+                  </Badge>
+                )}
               </div>
               <h3 className="font-semibold text-slate-900 text-sm line-clamp-2 group-hover:text-blue-600 transition-colors">
                 {ticket.subject}
