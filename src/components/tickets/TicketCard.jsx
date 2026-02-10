@@ -26,7 +26,7 @@ export default function TicketCard({ ticket }) {
 
   // Get assigned agent's display name
   const agentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
-  const agentDisplayName = agentProfile?.display_full_name || ticket.assigned_agent_name;
+  const agentDisplayName = agentProfile?.display_full_name || agentProfile?.full_name || ticket.assigned_agent_name;
 
   const getInitials = (name) => {
     if (!name) return "?";
@@ -39,7 +39,7 @@ export default function TicketCard({ ticket }) {
             style={{ borderLeftColor: organization?.branding_color || '#8B5CF6', borderLeftWidth: '3px' }}>
         <div className="flex items-center gap-4">
           {/* Ticket ID & Badges */}
-          <div className="flex items-center gap-2 w-[220px] flex-shrink-0">
+          <div className="flex items-center gap-2 w-[180px] flex-shrink-0">
             <span className="text-xs font-mono text-slate-600 font-semibold">
               {ticket.display_id}
             </span>
@@ -48,14 +48,14 @@ export default function TicketCard({ ticket }) {
           </div>
           
           {/* Subject */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 max-w-[280px]">
             <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
               {ticket.subject}
             </h3>
           </div>
           
           {/* Client */}
-          <div className="flex items-center gap-2 w-[180px] flex-shrink-0">
+          <div className="flex items-center gap-2 w-[160px] flex-shrink-0">
             <Avatar className="w-7 h-7 flex-shrink-0">
               <AvatarFallback className="bg-slate-100 text-slate-600 text-[10px]">
                 {getInitials(clientDisplayName)}
@@ -65,7 +65,7 @@ export default function TicketCard({ ticket }) {
           </div>
           
           {/* Assigned Engineer */}
-          <div className="flex items-center gap-2 w-[180px] flex-shrink-0">
+          <div className="flex items-center gap-2 w-[160px] flex-shrink-0">
             {agentDisplayName ? (
               <>
                 <Avatar className="w-7 h-7 flex-shrink-0">
@@ -81,7 +81,7 @@ export default function TicketCard({ ticket }) {
           </div>
           
           {/* Last Activity */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 w-[140px] flex-shrink-0 justify-end">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 w-[120px] flex-shrink-0 justify-end">
             <Clock className="w-3.5 h-3.5" />
             <span className="whitespace-nowrap">
               {formatDistanceToNow(new Date(ticket.last_activity || ticket.created_date), { addSuffix: true })}

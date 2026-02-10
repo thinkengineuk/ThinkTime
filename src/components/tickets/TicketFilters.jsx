@@ -70,7 +70,7 @@ export default function TicketFilters({
       {showOrgFilter && organizations?.length > 0 && (
         <Select value={filters.organization} onValueChange={(v) => setFilters({ ...filters, organization: v })}>
           <SelectTrigger className="w-[160px] bg-slate-50 border-0">
-            <SelectValue placeholder="Organization" />
+            <SelectValue placeholder="All Organisations" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Organisations</SelectItem>
@@ -84,7 +84,7 @@ export default function TicketFilters({
       {companies.length > 0 && (
         <Select value={filters.company} onValueChange={(v) => setFilters({ ...filters, company: v })}>
           <SelectTrigger className="w-[160px] bg-slate-50 border-0">
-            <SelectValue placeholder="Company" />
+            <SelectValue placeholder="All Companies" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Companies</SelectItem>
