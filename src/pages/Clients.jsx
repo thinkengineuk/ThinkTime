@@ -51,11 +51,26 @@ export default function Clients() {
         full_name
       });
       
-      // Update UserProfile with display_full_name
-      if (profile_id && display_full_name !== undefined) {
-        await base44.entities.UserProfile.update(profile_id, {
-          display_full_name
-        });
+      // Update or create UserProfile with display_full_name
+      if (display_full_name !== undefined) {
+        if (profile_id) {
+          await base44.entities.UserProfile.update(profile_id, {
+            display_full_name
+          });
+        } else {
+          // If no profile exists, create one
+          const userToProfile = users.find(u => u.id === userId);
+          if (userToProfile) {
+            await base44.entities.UserProfile.create({
+              user_id: userId,
+              email: userToProfile.email,
+              full_name: userToProfile.full_name || '',
+              display_full_name: display_full_name,
+              user_type: userToProfile.user_type || 'client',
+              organization_id: userToProfile.organization_id || null
+            });
+          }
+        }
       }
     },
     onSuccess: () => {
