@@ -90,7 +90,7 @@ export default function TicketDetail() {
   const { data: allUsers = [] } = useQuery({
     queryKey: ["allUsers"],
     queryFn: () => base44.entities.User.list(),
-    enabled: !!(user && isAgent)
+    enabled: !!user
   });
 
   const { data: timeLogs = [] } = useQuery({
