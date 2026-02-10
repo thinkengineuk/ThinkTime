@@ -19,7 +19,6 @@ export default function Dashboard() {
     status: "all",
     priority: "all",
     organization: "all",
-    company: "all",
     search: ""
   });
 
@@ -175,7 +174,6 @@ export default function Dashboard() {
         status: "all",
         priority: "all",
         organization: "all",
-        company: "all",
         search: ""
       });
       
@@ -196,7 +194,6 @@ export default function Dashboard() {
     if (filters.status !== "all" && ticket.status !== filters.status) return false;
     if (filters.priority !== "all" && ticket.priority !== filters.priority) return false;
     if (filters.organization !== "all" && ticket.organization_id !== filters.organization) return false;
-    if (filters.company !== "all" && ticket.client_name !== filters.company) return false;
     if (filters.search) {
       const search = filters.search.toLowerCase();
       const matches = 
