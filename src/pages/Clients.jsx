@@ -186,94 +186,273 @@ export default function Clients() {
           />
         </div>
 
-        <Card className="bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Full Name</TableHead>
-                <TableHead>User Full Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Company Name</TableHead>
-                <TableHead>Base44 Role</TableHead>
-                <TableHead>Organisation</TableHead>
-                <TableHead>User Type</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoadingUsers || isLoadingOrgs || isLoadingProfiles ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto" />
-                  </TableCell>
-                </TableRow>
-              ) : filteredUsers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-slate-500">
-                    No users found. Invite users from the Base44 dashboard.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.full_name || "-"}</TableCell>
-                    <TableCell>{user.display_full_name || user.full_name || "-"}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.company_name || "-"}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {user.role === "admin" ? "Admin" : "User"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={user.organization_id || ""}
-                        onValueChange={(value) => handleUpdateOrganization(user.id, value)}
-                        disabled={updateUserMutation.isPending}
-                      >
-                        <SelectTrigger className="w-40">
-                          <SelectValue placeholder="Select org" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {organizations.map(org => (
-                            <SelectItem key={org.id} value={org.id}>
-                              {org.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={user.user_type || "client"}
-                        onValueChange={(value) => handleUpdateUserType(user.id, value)}
-                        disabled={updateUserMutation.isPending}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="client">Client</SelectItem>
-                          <SelectItem value="agent">Engineer</SelectItem>
-                          <SelectItem value="super_admin">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingUser(user)}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </Card>
+        {isLoadingUsers || isLoadingOrgs || isLoadingProfiles ? (
+          <Card className="bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
+            <div className="text-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto" />
+            </div>
+          </Card>
+        ) : filteredUsers.length === 0 ? (
+          <Card className="bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
+            <div className="text-center py-12 text-slate-500">
+              No users found. Invite users from the Base44 dashboard.
+            </div>
+          </Card>
+        ) : (
+          <div className="space-y-8">
+            {/* Admins Section */}
+            {admins.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <Badge className="bg-blue-900/10 text-blue-900">Admins</Badge>
+                  <span className="text-sm text-slate-500 font-normal">({admins.length})</span>
+                </h2>
+                <Card className="bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Full Name</TableHead>
+                        <TableHead>User Full Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Company Name</TableHead>
+                        <TableHead>Base44 Role</TableHead>
+                        <TableHead>Organisation</TableHead>
+                        <TableHead>User Type</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {admins.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>{user.full_name || "-"}</TableCell>
+                          <TableCell>{user.display_full_name || user.full_name || "-"}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{user.company_name || "-"}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {user.role === "admin" ? "Admin" : "User"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.organization_id || ""}
+                              onValueChange={(value) => handleUpdateOrganization(user.id, value)}
+                              disabled={updateUserMutation.isPending}
+                            >
+                              <SelectTrigger className="w-40">
+                                <SelectValue placeholder="Select org" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {organizations.map(org => (
+                                  <SelectItem key={org.id} value={org.id}>
+                                    {org.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.user_type || "client"}
+                              onValueChange={(value) => handleUpdateUserType(user.id, value)}
+                              disabled={updateUserMutation.isPending}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="client">Client</SelectItem>
+                                <SelectItem value="agent">Engineer</SelectItem>
+                                <SelectItem value="super_admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingUser(user)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Card>
+              </div>
+            )}
+
+            {/* Engineers Section */}
+            {engineers.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <Badge className="bg-sky-500/10 text-sky-600">Engineers</Badge>
+                  <span className="text-sm text-slate-500 font-normal">({engineers.length})</span>
+                </h2>
+                <Card className="bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Full Name</TableHead>
+                        <TableHead>User Full Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Company Name</TableHead>
+                        <TableHead>Base44 Role</TableHead>
+                        <TableHead>Organisation</TableHead>
+                        <TableHead>User Type</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {engineers.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>{user.full_name || "-"}</TableCell>
+                          <TableCell>{user.display_full_name || user.full_name || "-"}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{user.company_name || "-"}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {user.role === "admin" ? "Admin" : "User"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.organization_id || ""}
+                              onValueChange={(value) => handleUpdateOrganization(user.id, value)}
+                              disabled={updateUserMutation.isPending}
+                            >
+                              <SelectTrigger className="w-40">
+                                <SelectValue placeholder="Select org" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {organizations.map(org => (
+                                  <SelectItem key={org.id} value={org.id}>
+                                    {org.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.user_type || "client"}
+                              onValueChange={(value) => handleUpdateUserType(user.id, value)}
+                              disabled={updateUserMutation.isPending}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="client">Client</SelectItem>
+                                <SelectItem value="agent">Engineer</SelectItem>
+                                <SelectItem value="super_admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingUser(user)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Card>
+              </div>
+            )}
+
+            {/* Clients Section */}
+            {clients.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <Badge className="bg-slate-500/10 text-slate-600">Clients</Badge>
+                  <span className="text-sm text-slate-500 font-normal">({clients.length})</span>
+                </h2>
+                <Card className="bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Full Name</TableHead>
+                        <TableHead>User Full Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Company Name</TableHead>
+                        <TableHead>Base44 Role</TableHead>
+                        <TableHead>Organisation</TableHead>
+                        <TableHead>User Type</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {clients.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>{user.full_name || "-"}</TableCell>
+                          <TableCell>{user.display_full_name || user.full_name || "-"}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{user.company_name || "-"}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {user.role === "admin" ? "Admin" : "User"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.organization_id || ""}
+                              onValueChange={(value) => handleUpdateOrganization(user.id, value)}
+                              disabled={updateUserMutation.isPending}
+                            >
+                              <SelectTrigger className="w-40">
+                                <SelectValue placeholder="Select org" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {organizations.map(org => (
+                                  <SelectItem key={org.id} value={org.id}>
+                                    {org.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.user_type || "client"}
+                              onValueChange={(value) => handleUpdateUserType(user.id, value)}
+                              disabled={updateUserMutation.isPending}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="client">Client</SelectItem>
+                                <SelectItem value="agent">Engineer</SelectItem>
+                                <SelectItem value="super_admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingUser(user)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Card>
+              </div>
+            )}
+          </div>
+        )}
 
         <EditUserDialog
           open={!!editingUser}
