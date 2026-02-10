@@ -2,12 +2,12 @@ import { Button } from "@/components/ui/button";
 
 export default function OrgSwitcher({ organizations, selectedOrg, onSelect }) {
   return (
-    <div className="flex items-center gap-2 p-1 bg-white/50 backdrop-blur-sm rounded-xl border border-slate-200/50 shadow-sm">
+    <div className="flex items-center gap-2 p-1 bg-white/50 backdrop-blur-sm rounded-xl border border-slate-200/50 shadow-sm overflow-x-auto whitespace-nowrap">
       <Button
         variant={selectedOrg === "all" ? "default" : "ghost"}
         size="sm"
         onClick={() => onSelect("all")}
-        className="text-xs font-medium"
+        className="text-xs font-medium shrink-0"
       >
         All
       </Button>
@@ -17,13 +17,14 @@ export default function OrgSwitcher({ organizations, selectedOrg, onSelect }) {
           variant={selectedOrg === org.id ? "default" : "ghost"}
           size="sm"
           onClick={() => onSelect(org.id)}
-          className="text-xs font-medium flex items-center gap-2"
+          className="text-xs font-medium flex items-center gap-2 shrink-0"
           style={selectedOrg === org.id ? { backgroundColor: org.branding_color, color: 'white' } : {}}
         >
           {org.logo_url && (
             <img src={org.logo_url} alt={org.name} className="w-4 h-4 object-contain rounded" />
           )}
-          {org.name}
+          <span className="hidden sm:inline">{org.name}</span>
+          <span className="sm:hidden">{org.prefix || org.name}</span>
         </Button>
       ))}
     </div>
