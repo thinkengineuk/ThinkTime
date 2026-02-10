@@ -15,13 +15,28 @@ export default function TicketCard({ ticket }) {
     enabled: !!ticket.organization_id
   });
 
-  const { data: userProfiles = [] } = useQuery({
-    queryKey: ["userProfiles"],
-    queryFn: () => base44.entities.UserProfile.list()
+  const { data: user } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => base44.auth.me()
   });
 
-  // Get client's display name
-  const clientProfile = userProfiles.find(p => p.email === ticket.client_email);
+  const isAgent = user?.user_type === "agent" || user?.user_type === "super_admin" || user?.role === "admin";
+
+  const { data: userProfiles = [] } = useQuery({
+    queryKey: ["userProfiles"],
+    queryFn: () => base44.entities.UserProfile.list(),
+    enabled: !!user && isAgent,
+  });
+
+  const { data: clientUserProfile } = useQuery({
+    queryKey: ["clientUserProfile", user?.id],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user.id }).then(res => res[0]),
+    enabled: !!user && !isAgent,
+  });
+
+  const effectiveUserProfiles = isAgent ? userProfiles : (clientUserProfile ? [clientUserProfile] : []);
+
+  const clientProfile = effectiveUserProfiles.find(p => p.email === ticket.client_email);
   const clientDisplayName = clientProfile?.display_full_name || ticket.client_name || ticket.client_email;
 
   const getInitials = (name) => {
@@ -33,9 +48,7 @@ export default function TicketCard({ ticket }) {
     <Link to={createPageUrl(`TicketDetail?id=${ticket.id}`)}>
       <Card className="p-3 sm:p-4 hover:shadow-lg transition-all duration-200 cursor-pointer group bg-white/70 backdrop-blur-sm border border-slate-200/50"
             style={{ borderLeftColor: organization?.branding_color || '#8B5CF6', borderLeftWidth: '3px' }}>
-        {/* Desktop Layout */}
         <div className="hidden lg:flex items-center gap-4">
-          {/* Ticket ID & Badges */}
           <div className="flex items-center gap-2 w-[180px] flex-shrink-0">
             <span className="text-xs font-mono text-slate-600 font-semibold whitespace-nowrap">
               {ticket.display_id}
@@ -44,14 +57,12 @@ export default function TicketCard({ ticket }) {
             <PriorityBadge priority={ticket.priority} />
           </div>
           
-          {/* Subject */}
           <div className="flex-1 min-w-0 max-w-[280px]">
             <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
               {ticket.subject}
             </h3>
           </div>
           
-          {/* Client */}
           <div className="flex items-center gap-2 w-[160px] flex-shrink-0">
             <Avatar className="w-7 h-7 flex-shrink-0">
               <AvatarFallback className="bg-slate-100 text-slate-600 text-[10px]">
@@ -61,11 +72,10 @@ export default function TicketCard({ ticket }) {
             <span className="text-sm text-slate-600 truncate">{clientDisplayName}</span>
           </div>
           
-          {/* Assigned Engineer */}
           <div className="flex items-center gap-2 w-[160px] flex-shrink-0">
             {ticket.assigned_agent_email ? (
               (() => {
-                const assignedAgentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
+                const assignedAgentProfile = effectiveUserProfiles.find(p => p.email === ticket.assigned_agent_email);
                 const displayName = assignedAgentProfile?.display_full_name || assignedAgentProfile?.full_name || ticket.assigned_agent_name;
                 if (!displayName) return <span className="text-sm text-slate-400">Unassigned</span>;
                 return (
@@ -84,7 +94,6 @@ export default function TicketCard({ ticket }) {
             )}
           </div>
           
-          {/* Last Activity */}
           <div className="flex items-center gap-1.5 text-xs text-slate-500 w-[120px] flex-shrink-0 justify-end">
             <Clock className="w-3.5 h-3.5" />
             <span className="whitespace-nowrap">
@@ -93,7 +102,6 @@ export default function TicketCard({ ticket }) {
           </div>
         </div>
 
-        {/* Mobile Layout */}
         <div className="lg:hidden space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
@@ -129,7 +137,7 @@ export default function TicketCard({ ticket }) {
           </div>
 
           {ticket.assigned_agent_email && (() => {
-            const assignedAgentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
+            const assignedAgentProfile = effectiveUserProfiles.find(p => p.email === ticket.assigned_agent_email);
             const displayName = assignedAgentProfile?.display_full_name || assignedAgentProfile?.full_name || ticket.assigned_agent_name;
             if (!displayName) return null;
             return (

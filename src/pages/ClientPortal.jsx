@@ -20,14 +20,13 @@ export default function ClientPortal() {
     queryFn: () => base44.auth.me()
   });
 
-  const { data: userProfiles = [] } = useQuery({
-    queryKey: ["userProfiles"],
-    queryFn: () => base44.entities.UserProfile.list()
+  const { data: clientUserProfile } = useQuery({
+    queryKey: ["clientUserProfile", user?.id],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user.id }).then(res => res[0]),
+    enabled: !!user,
   });
 
-  // Get current user's display name
-  const currentUserProfile = userProfiles.find(p => p.user_id === user?.id);
-  const currentUserDisplayName = currentUserProfile?.display_full_name || user?.full_name || user?.email;
+  const currentUserDisplayName = clientUserProfile?.display_full_name || user?.full_name || user?.email;
 
   const clientOrganizationId = user?.organization_id;
 
@@ -60,16 +59,13 @@ export default function ClientPortal() {
     queryFn: async () => {
       if (!user?.email) return [];
       
-      // Fetch tickets where user is the primary client
       const clientTickets = await base44.entities.Ticket.filter({ client_email: user.email }, "-last_activity");
       
-      // Fetch tickets where user is a watcher
       const allTickets = await base44.entities.Ticket.list("-last_activity");
       const watchedTickets = allTickets.filter(ticket => 
         ticket.watchers?.some(w => w.email === user.email)
       );
       
-      // Combine and deduplicate by ticket ID
       const combinedMap = new Map();
       [...clientTickets, ...watchedTickets].forEach(ticket => {
         combinedMap.set(ticket.id, ticket);
@@ -114,7 +110,6 @@ export default function ClientPortal() {
 
       await base44.entities.Organization.update(organization.id, { ticket_counter: newCounter });
 
-      // Create initial comment with description and attachments
       if (formData.description || formData.attachments?.length > 0) {
         await base44.entities.Comment.create({
           ticket_id: newTicket.id,
@@ -129,7 +124,6 @@ export default function ClientPortal() {
         });
       }
 
-      // Optimistically update the ticket list
       queryClient.setQueryData(["clientTickets", user?.email], (oldTickets) => [newTicket, ...(oldTickets || [])]);
 
       await base44.functions.invoke('sendNewTicketNotification', {
@@ -161,7 +155,6 @@ export default function ClientPortal() {
 
   return (
     <div>
-      {/* Header with Branding */}
       <div 
         className="py-10 px-6 relative overflow-hidden"
         style={{ 
@@ -214,7 +207,6 @@ export default function ClientPortal() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {/* Stats */}
         <div className="grid grid-cols-2 gap-4 mb-8">
           <Card className="p-5 bg-gradient-to-br from-white to-slate-50/50 border-slate-200/50 shadow-sm hover:shadow-md transition-shadow">
             <p className="text-sm text-slate-500 font-medium">Open Tickets</p>
@@ -230,7 +222,6 @@ export default function ClientPortal() {
           </Card>
         </div>
 
-        {/* Tabs */}
         <div className="flex items-center justify-between mb-6">
           <Tabs value={viewMode} onValueChange={setViewMode}>
             <TabsList className="bg-white/70 backdrop-blur-sm border border-slate-200/50 shadow-sm">
@@ -241,7 +232,6 @@ export default function ClientPortal() {
           </Tabs>
         </div>
 
-        {/* Tickets */}
         <div className="space-y-3">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">

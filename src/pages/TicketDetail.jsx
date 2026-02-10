@@ -49,6 +49,8 @@ export default function TicketDetail() {
     queryFn: () => base44.auth.me()
   });
 
+  const isAgent = user?.user_type === "agent" || user?.user_type === "super_admin" || user?.role === "admin";
+
   const { data: ticket, isLoading } = useQuery({
     queryKey: ["ticket", ticketId],
     queryFn: async () => {
@@ -69,16 +71,24 @@ export default function TicketDetail() {
     queryFn: async () => {
       const profiles = await base44.entities.UserProfile.list();
       return profiles.filter(p => ["agent", "super_admin", "admin"].includes(p.user_type));
-    }
+    },
+    enabled: !!user && isAgent
   });
 
   const { data: userProfiles = [] } = useQuery({
     queryKey: ["userProfiles"],
-    queryFn: () => base44.entities.UserProfile.list()
+    queryFn: () => base44.entities.UserProfile.list(),
+    enabled: !!user && isAgent,
   });
 
-  // Get current user's display name
-  const currentUserProfile = userProfiles.find(p => p.user_id === user?.id);
+  const { data: clientUserProfile } = useQuery({
+    queryKey: ["clientUserProfile", user?.id],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user.id }).then(res => res[0]),
+    enabled: !!user && !isAgent,
+  });
+
+  const effectiveUserProfiles = isAgent ? userProfiles : (clientUserProfile ? [clientUserProfile] : []);
+  const currentUserProfile = effectiveUserProfiles.find(p => p.user_id === user?.id);
   const currentUserDisplayName = currentUserProfile?.display_full_name || user?.full_name;
 
   const { data: organizations = [] } = useQuery({
@@ -86,12 +96,10 @@ export default function TicketDetail() {
     queryFn: () => base44.entities.Organization.list()
   });
 
-  const isAgent = user?.user_type === "agent" || user?.user_type === "super_admin" || user?.role === "admin";
-
   const { data: allUsers = [] } = useQuery({
     queryKey: ["allUsers"],
     queryFn: () => base44.entities.User.list(),
-    enabled: !!user
+    enabled: !!user && isAgent
   });
 
   const { data: timeLogs = [] } = useQuery({
@@ -100,7 +108,6 @@ export default function TicketDetail() {
     enabled: !!ticketId && isAgent
   });
 
-  // Redirect logic for unauthorized access
   useEffect(() => {
     if (!isLoading && !ticket && ticketId && user) {
       console.log("Ticket not found or unauthorized", { ticketId, userEmail: user?.email });
@@ -122,7 +129,6 @@ export default function TicketDetail() {
     u.user_type !== "agent" && u.user_type !== "super_admin" && u.role !== "admin"
   );
 
-  // All users including agents for watchers
   const allUsersForWatchers = allUsers;
 
   const updateTicket = useMutation({
@@ -163,7 +169,6 @@ export default function TicketDetail() {
         attachments: data.attachments || []
       });
 
-      // Handle @mentions
       if (data.body.includes('@')) {
         await base44.functions.invoke('handleMentionNotifications', {
           ticketId,
@@ -240,7 +245,6 @@ export default function TicketDetail() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        {/* Back Button */}
         <Link 
           to={createPageUrl(isAgent ? "Dashboard" : "ClientPortal")}
           className="inline-flex items-center text-sm text-slate-500 hover:text-slate-700 mb-6"
@@ -250,9 +254,7 @@ export default function TicketDetail() {
         </Link>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Ticket Header */}
             <Card className="p-6 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
@@ -287,7 +289,6 @@ export default function TicketDetail() {
               )}
             </Card>
 
-            {/* Time Tracker */}
             {isAgent && (
               <TimeTracker 
                 onSubmit={(data) => addTimeLog.mutate(data)}
@@ -296,7 +297,6 @@ export default function TicketDetail() {
               />
             )}
 
-            {/* Time Logs Display */}
             {isAgent && timeLogs.length > 0 && (
               <Card className="p-6 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
                 <h2 className="font-semibold text-slate-900 mb-4">Logged Time</h2>
@@ -336,11 +336,9 @@ export default function TicketDetail() {
               </Card>
             )}
 
-            {/* Conversation */}
             <Card className="p-6 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
               <h2 className="font-semibold text-slate-900 mb-4">Conversation</h2>
               
-              {/* Reply Composer at Top */}
               <div className="mb-6">
                 <ReplyComposer 
                   onSubmit={(data) => addComment.mutate(data)}
@@ -349,28 +347,25 @@ export default function TicketDetail() {
                   ticketParticipants={(() => {
                     const participants = [];
                     
-                    // Add client
                     if (ticket.client_email) {
-                      const clientProfile = userProfiles.find(p => p.email === ticket.client_email);
+                      const clientProfile = effectiveUserProfiles.find(p => p.email === ticket.client_email);
                       participants.push({
                         email: ticket.client_email,
                         name: clientProfile?.display_full_name || ticket.client_name
                       });
                     }
                     
-                    // Add assigned agent
                     if (ticket.assigned_agent_email) {
-                      const agentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
+                      const agentProfile = effectiveUserProfiles.find(p => p.email === ticket.assigned_agent_email);
                       participants.push({
                         email: ticket.assigned_agent_email,
                         name: agentProfile?.display_full_name || ticket.assigned_agent_name
                       });
                     }
                     
-                    // Add watchers
                     if (ticket.watchers) {
                       ticket.watchers.forEach(w => {
-                        const watcherProfile = userProfiles.find(p => p.email === w.email);
+                        const watcherProfile = effectiveUserProfiles.find(p => p.email === w.email);
                         participants.push({
                           email: w.email,
                           name: watcherProfile?.display_full_name || w.name
@@ -378,11 +373,10 @@ export default function TicketDetail() {
                       });
                     }
                     
-                    // Add admins
                     if (allUsers) {
                       const admins = allUsers.filter(u => u.user_type === 'super_admin' || u.role === 'admin');
                       admins.forEach(admin => {
-                        const adminProfile = userProfiles.find(p => p.user_id === admin.id);
+                        const adminProfile = effectiveUserProfiles.find(p => p.user_id === admin.id);
                         if (adminProfile && !participants.some(p => p.email === admin.email)) {
                           participants.push({
                             email: admin.email,
@@ -397,14 +391,11 @@ export default function TicketDetail() {
                 />
               </div>
 
-              {/* Comment Thread */}
               <CommentThread comments={comments} currentUserEmail={user?.email} />
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Actions */}
             {isAgent && (
               <Card className="p-4 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
                 <h3 className="text-sm font-semibold text-slate-700 mb-3">Actions</h3>
@@ -445,7 +436,6 @@ export default function TicketDetail() {
                         const agent = agents.find(a => a.email === v);
                         const oldAssignedEmail = ticket.assigned_agent_email;
                         
-                        // Handle unassign or assign
                         const updateData = v === "" ? {
                           assigned_agent_email: null,
                           assigned_agent_name: null
@@ -456,7 +446,6 @@ export default function TicketDetail() {
                         
                         await updateTicket.mutateAsync(updateData);
 
-                        // Send notification if agent is newly assigned (from unassigned or different agent)
                         if (v && v !== "" && v !== oldAssignedEmail) {
                           await base44.functions.invoke('sendAgentAssignmentNotification', {
                             ticketId: ticket.id,
@@ -528,13 +517,12 @@ export default function TicketDetail() {
               </Card>
             )}
 
-            {/* Details */}
             <Card className="p-4 bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
               <h3 className="text-sm font-semibold text-slate-700 mb-3">Details</h3>
               <div className="space-y-3 text-sm">
                 <div className="flex items-center gap-2 text-slate-600">
                   <User className="w-4 h-4 text-slate-400" />
-                  <span>{userProfiles.find(p => p.email === ticket.client_email)?.display_full_name || ticket.client_name || ticket.client_email}</span>
+                  <span>{effectiveUserProfiles.find(p => p.email === ticket.client_email)?.display_full_name || ticket.client_name || ticket.client_email}</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-600">
                   <Mail className="w-4 h-4 text-slate-400" />
@@ -562,7 +550,7 @@ export default function TicketDetail() {
                         if (!newClientEmail) return;
                         
                         const client = clientUsers.find(c => c.email === newClientEmail);
-                        const clientProfile = userProfiles.find(p => p.user_id === client?.id);
+                        const clientProfile = effectiveUserProfiles.find(p => p.user_id === client?.id);
                         if (client) {
                           await updateTicket.mutateAsync({
                             client_email: client.email,
@@ -585,7 +573,7 @@ export default function TicketDetail() {
                       </SelectTrigger>
                       <SelectContent>
                         {clientUsers.map(client => {
-                          const clientProfile = userProfiles.find(p => p.user_id === client.id);
+                          const clientProfile = effectiveUserProfiles.find(p => p.user_id === client.id);
                           return (
                             <SelectItem key={client.id} value={client.email}>
                               {clientProfile?.display_full_name || client.full_name} ({client.email})
@@ -597,7 +585,6 @@ export default function TicketDetail() {
                   </div>
                 )}
 
-                {/* Watchers Section - Visible to all, editable by admins only */}
                 <div className="pt-3 border-t border-slate-200">
                   <label className="text-xs text-slate-500 block mb-2">
                     Watchers {ticket.watchers?.length > 0 && `(${ticket.watchers.length}/5)`}
@@ -610,7 +597,7 @@ export default function TicketDetail() {
                         if (!watcherEmail) return;
                         
                         const watcher = allUsersForWatchers.find(c => c.email === watcherEmail);
-                        const watcherProfile = userProfiles.find(p => p.user_id === watcher?.id);
+                        const watcherProfile = effectiveUserProfiles.find(p => p.user_id === watcher?.id);
                         const watcherDisplayName = watcherProfile?.display_full_name || watcher?.full_name;
                         
                         if (watcher) {
@@ -652,7 +639,7 @@ export default function TicketDetail() {
                         {allUsersForWatchers
                           .filter(c => c.email !== ticket.client_email)
                           .map(u => {
-                            const profile = userProfiles.find(p => p.user_id === u.id);
+                            const profile = effectiveUserProfiles.find(p => p.user_id === u.id);
                             return (
                               <SelectItem key={u.id} value={u.email}>
                                 {profile?.display_full_name || u.full_name} ({u.email})
@@ -666,7 +653,7 @@ export default function TicketDetail() {
                   {ticket.watchers?.length > 0 && (
                     <div className="mt-2 space-y-1">
                       {ticket.watchers.map((watcher, idx) => {
-                        const watcherProfile = userProfiles.find(p => p.email === watcher.email);
+                        const watcherProfile = effectiveUserProfiles.find(p => p.email === watcher.email);
                         const displayName = watcherProfile?.display_full_name || watcher.name;
                         return (
                           <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 px-2 py-1.5 rounded">
@@ -696,9 +683,8 @@ export default function TicketDetail() {
               </div>
             </Card>
 
-            {/* Assigned Engineer */}
             {ticket.assigned_agent_email && (() => {
-              const assignedAgentProfile = userProfiles.find(p => p.email === ticket.assigned_agent_email);
+              const assignedAgentProfile = effectiveUserProfiles.find(p => p.email === ticket.assigned_agent_email);
               const displayName = assignedAgentProfile?.display_full_name || assignedAgentProfile?.full_name || ticket.assigned_agent_name;
               if (!displayName) return null;
               return (
