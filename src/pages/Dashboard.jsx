@@ -108,10 +108,10 @@ export default function Dashboard() {
       }
 
       // Auto-assign to karla@thinkengine.co if no agent specified
-      let assignedAgentEmail = formData.assigned_agent_email;
-      let assignedAgentName = formData.assigned_agent_name;
+      let assignedAgentEmail = formData.assigned_agent_email || null;
+      let assignedAgentName = formData.assigned_agent_name || null;
       
-      if (!assignedAgentEmail) {
+      if (!assignedAgentEmail || assignedAgentEmail === "") {
         assignedAgentEmail = "karla@thinkengine.co";
         const userProfiles = await base44.entities.UserProfile.list();
         const karlaProfile = userProfiles.find(p => p.email === "karla@thinkengine.co");
@@ -178,6 +178,19 @@ export default function Dashboard() {
           description: formData.description
         });
       }
+
+      // Send notification to super admins
+      await base44.functions.invoke('sendNewTicketNotification', {
+        ticketId: newTicket.id,
+        displayId,
+        subject: formData.subject,
+        description: formData.description,
+        priority: formData.priority,
+        category: formData.category,
+        client_name: formData.client_name,
+        client_email: formData.client_email,
+        assigned_agent_email: assignedAgentEmail
+      });
 
       console.log(`✅ New ticket created: ${displayId} (ID=${newTicket.id}, Org=${org.name}, Status=${newTicket.status})`);
       
