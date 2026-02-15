@@ -23,14 +23,16 @@ Deno.serve(async (req) => {
     // Fetch all users to identify administrators and agents
     const users = await base44.asServiceRole.entities.User.list();
     
-    // If there's an assigned agent, notify them; otherwise notify only super_admins
-    let recipientEmails;
-    if (assigned_agent_email) {
-      recipientEmails = [assigned_agent_email];
-    } else {
-      recipientEmails = users
-        .filter(user => user.user_type === 'super_admin')
-        .map(user => user.email);
+    // Collect emails of all users with role 'admin' or user_type 'super_admin'
+    const adminEmails = users
+      .filter(u => u.role === 'admin' || u.user_type === 'super_admin')
+      .map(u => u.email);
+
+    let recipientEmails = [...adminEmails];
+
+    // If there's an assigned agent, add them to the recipients if they are not already in the list
+    if (assigned_agent_email && !recipientEmails.includes(assigned_agent_email)) {
+      recipientEmails.push(assigned_agent_email);
     }
 
     if (recipientEmails.length === 0) {
