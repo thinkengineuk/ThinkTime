@@ -169,6 +169,17 @@ export default function TicketDetail() {
         attachments: data.attachments || []
       });
 
+      // Send notification for the new comment
+      await base44.functions.invoke('sendTicketReplyNotification', {
+        ticketId: ticket.id,
+        displayId: ticket.display_id,
+        subject: ticket.subject,
+        client_email: ticket.client_email,
+        client_name: ticket.client_name,
+        agent_name: currentUserDisplayName,
+        reply_body: data.body
+      });
+
       if (data.body.includes('@')) {
         await base44.functions.invoke('handleMentionNotifications', {
           ticketId,

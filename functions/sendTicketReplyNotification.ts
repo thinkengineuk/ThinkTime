@@ -59,27 +59,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch all users to identify admins
+    // Fetch all users to identify admins and agents
     const allUsers = await base44.asServiceRole.entities.User.list();
-    const superAdmins = allUsers.filter(u => u.user_type === 'super_admin' || u.role === 'admin');
     
     const recipientEmails = new Set();
 
-    // Add assigned agent if exists and not the replier
-    if (ticket?.assigned_agent_email && ticket.assigned_agent_email !== user.email) {
-      recipientEmails.add(ticket.assigned_agent_email);
-    }
-    
-    // Add super admins (excluding the person who replied)
-    superAdmins.forEach(admin => {
-      if (admin.email !== user.email) {
-        recipientEmails.add(admin.email);
+    // Add all admins and super admins (excluding the person who replied)
+    allUsers.forEach(u => {
+      if ((u.role === 'admin' || u.user_type === 'super_admin') && u.email !== user.email) {
+        recipientEmails.add(u.email);
       }
     });
 
-    // Add watchers
+    // Add assigned agent if exists and not already in the list
+    if (ticket?.assigned_agent_email && ticket.assigned_agent_email !== user.email && !recipientEmails.has(ticket.assigned_agent_email)) {
+      recipientEmails.add(ticket.assigned_agent_email);
+    }
+    
+    // Add watchers if not already in the list
     if (ticket?.watchers) {
-      ticket.watchers.forEach(watcher => recipientEmails.add(watcher.email));
+      ticket.watchers.forEach(watcher => {
+        if (watcher.email !== user.email && !recipientEmails.has(watcher.email)) {
+          recipientEmails.add(watcher.email);
+        }
+      });
     }
 
     // Send emails to all recipients
