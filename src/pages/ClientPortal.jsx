@@ -87,8 +87,11 @@ export default function ClientPortal() {
         return;
       }
 
-      const newCounter = (organization.ticket_counter || 0) + 1;
-      const displayId = generateTicketId(organization.prefix, newCounter);
+      // Generate unique ticket ID atomically via backend function
+      const { data: ticketIdData } = await base44.functions.invoke('generateTicketId', {
+        organization_id: organization.id
+      });
+      const displayId = ticketIdData.display_id;
 
       const ticketData = {
         subject: formData.subject,
@@ -106,8 +109,6 @@ export default function ClientPortal() {
       };
 
       const newTicket = await base44.entities.Ticket.create(ticketData);
-
-      await base44.entities.Organization.update(organization.id, { ticket_counter: newCounter });
 
       if (formData.description || formData.attachments?.length > 0) {
         await base44.entities.Comment.create({
