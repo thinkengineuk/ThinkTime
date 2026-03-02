@@ -7,7 +7,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Ticket, Loader2 } from "lucide-react";
 import TicketCard from "@/components/tickets/TicketCard";
 import CreateTicketDialog from "@/components/tickets/CreateTicketDialog";
-import { generateTicketId } from "@/components/utils/base44";
 import { toast } from "sonner";
 
 export default function ClientPortal() {
