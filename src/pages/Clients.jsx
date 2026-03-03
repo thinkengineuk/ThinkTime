@@ -165,7 +165,7 @@ export default function Clients() {
           />
         </div>
 
-        {isLoadingUsers || isLoadingOrgs || isLoadingProfiles ? (
+        {isLoadingProfiles || isLoadingOrgs ? (
           <Card className="bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
             <div className="text-center py-12">
               <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto" />
