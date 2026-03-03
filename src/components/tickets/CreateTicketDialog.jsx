@@ -127,7 +127,7 @@ export default function CreateTicketDialog({
                     setForm({
                       ...form,
                       client_email: email,
-                      client_name: selectedClient ? selectedClient.full_name : ""
+                      client_name: selectedClient ? (selectedClient.display_full_name || selectedClient.full_name) : ""
                     });
                   }}
                 >
@@ -137,7 +137,7 @@ export default function CreateTicketDialog({
                   <SelectContent>
                     {clientUsers.map(client => (
                       <SelectItem key={client.email} value={client.email}>
-                        {client.full_name} ({client.email}){getOrgName(client.organization_id)}
+                        {client.display_full_name || client.full_name} ({client.email}){getOrgName(client.organization_id)}
                       </SelectItem>
                     ))}
                   </SelectContent>
