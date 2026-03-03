@@ -125,9 +125,11 @@ export default function TicketDetail() {
     return org ? ` (${org.name})` : '';
   };
 
-  const clientUsers = allUsers.filter(u => 
-    u.user_type !== "agent" && u.user_type !== "super_admin"
-  );
+  const clientUsers = allUsers.filter(u => {
+    const profile = userProfiles.find(p => p.user_id === u.id);
+    const effectiveType = profile?.user_type || u.user_type;
+    return effectiveType !== "agent" && effectiveType !== "super_admin";
+  });
 
   const allUsersForWatchers = allUsers;
 
