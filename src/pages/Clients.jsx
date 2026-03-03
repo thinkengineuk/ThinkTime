@@ -88,8 +88,8 @@ export default function Clients() {
       userId, 
       user_type: newUserType,
       organization_id: user.organization_id,
-      organization_name: user.organization_name,
-      company_name: user.company_name,
+      display_full_name: user.display_full_name,
+      full_name: user.full_name,
       profile_id: user.profile_id
     });
   };
@@ -102,7 +102,8 @@ export default function Clients() {
       user_type: user.user_type || "client",
       organization_id: orgId,
       organization_name: org?.name,
-      company_name: user.company_name,
+      display_full_name: user.display_full_name,
+      full_name: user.full_name,
       profile_id: user.profile_id
     });
   };
