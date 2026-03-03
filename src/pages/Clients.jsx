@@ -15,15 +15,10 @@ export default function Clients() {
   const [search, setSearch] = useState("");
   const [editingUser, setEditingUser] = useState(null);
 
-  const { data: users = [], isLoading: isLoadingUsers } = useQuery({
-    queryKey: ["users"],
-    queryFn: () => base44.entities.User.list(),
-    refetchInterval: 3000 // Auto-refresh every 3 seconds
-  });
-
   const { data: userProfiles = [], isLoading: isLoadingProfiles } = useQuery({
     queryKey: ["userProfiles"],
-    queryFn: () => base44.entities.UserProfile.list()
+    queryFn: () => base44.entities.UserProfile.list(),
+    refetchInterval: 3000
   });
 
   const { data: organizations = [], isLoading: isLoadingOrgs } = useQuery({
