@@ -213,10 +213,10 @@ export default function Dashboard() {
 
   const filteredTickets = tickets.filter(ticket => {
     const isActive = ["open", "pending"].includes(ticket.status);
-    const isInactive = ["resolved", "closed"].includes(ticket.status);
+    const isClosed = ["resolved", "closed"].includes(ticket.status);
     
     if (viewMode === "active" && !isActive) return false;
-    if (viewMode === "inactive" && !isInactive) return false;
+    if (viewMode === "closed" && !isClosed) return false;
 
     if (filters.status !== "all" && ticket.status !== filters.status) return false;
     if (filters.priority !== "all" && ticket.priority !== filters.priority) return false;
