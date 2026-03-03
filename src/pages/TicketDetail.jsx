@@ -171,21 +171,6 @@ export default function TicketDetail() {
 
       const isPending = ticket.status === 'pending';
 
-      // If pending, add an auto-close warning comment to the conversation
-      if (isPending && !data.isInternal) {
-        await base44.entities.Comment.create({
-          ticket_id: ticketId,
-          ticket_display_id: ticket.display_id,
-          author_email: 'system@thinktime.support',
-          author_name: 'ThinkTime System',
-          author_role: 'agent',
-          body: '⏰ **Auto-Close Notice:** This ticket is pending client review. If no response is received within **7 days**, this ticket will be automatically closed.',
-          is_internal: false,
-          source: 'web',
-          attachments: []
-        });
-      }
-
       // Send notification for the new comment
       await base44.functions.invoke('sendTicketReplyNotification', {
         ticketId: ticket.id,
