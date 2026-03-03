@@ -302,7 +302,7 @@ export default function Dashboard() {
           <Tabs value={viewMode} onValueChange={setViewMode} className="w-full sm:w-auto">
             <TabsList className="bg-white/70 backdrop-blur-sm border border-slate-200/50 shadow-sm w-full sm:w-auto">
               <TabsTrigger value="active" className="flex-1 sm:flex-none">Active</TabsTrigger>
-              <TabsTrigger value="inactive" className="flex-1 sm:flex-none">Inactive</TabsTrigger>
+              <TabsTrigger value="closed" className="flex-1 sm:flex-none">Closed</TabsTrigger>
               <TabsTrigger value="all" className="flex-1 sm:flex-none">All</TabsTrigger>
             </TabsList>
           </Tabs>
