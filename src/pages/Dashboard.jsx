@@ -283,10 +283,18 @@ export default function Dashboard() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatsCard title="Open Tickets" value={stats.open} icon={Ticket} color="sky" />
-          <StatsCard title="Pending (with client to review)" value={stats.pending} icon={Clock} color="amber" />
-          <StatsCard title="Closed" value={stats.resolved} icon={CheckCircle} color="emerald" />
-          <StatsCard title="Urgent" value={stats.urgent} icon={AlertTriangle} color="rose" />
+          <div className="cursor-pointer" onClick={() => { setViewMode("all"); setFilters(f => ({ ...f, status: "open", priority: "all" })); }}>
+            <StatsCard title="Open Tickets" value={stats.open} icon={Ticket} color="sky" />
+          </div>
+          <div className="cursor-pointer" onClick={() => { setViewMode("all"); setFilters(f => ({ ...f, status: "pending", priority: "all" })); }}>
+            <StatsCard title="Pending (with client to review)" value={stats.pending} icon={Clock} color="amber" />
+          </div>
+          <div className="cursor-pointer" onClick={() => { setViewMode("closed"); setFilters(f => ({ ...f, status: "all", priority: "all" })); }}>
+            <StatsCard title="Closed" value={stats.resolved} icon={CheckCircle} color="emerald" />
+          </div>
+          <div className="cursor-pointer" onClick={() => { setViewMode("all"); setFilters(f => ({ ...f, status: "all", priority: "urgent" })); }}>
+            <StatsCard title="Urgent" value={stats.urgent} icon={AlertTriangle} color="rose" />
+          </div>
         </div>
 
         {/* View Toggle */}
