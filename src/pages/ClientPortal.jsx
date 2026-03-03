@@ -134,6 +134,19 @@ export default function ClientPortal() {
 
       queryClient.setQueryData(["clientTickets", user?.email], (oldTickets) => [newTicket, ...(oldTickets || [])]);
 
+      await base44.functions.invoke('sendAgentAssignmentNotification', {
+        ticketId: newTicket.id,
+        displayId,
+        subject: formData.subject,
+        agent_email: assignedAgentEmail,
+        agent_name: assignedAgentName,
+        client_name: currentUserDisplayName,
+        client_email: user.email,
+        priority: formData.priority,
+        category: formData.category,
+        description: formData.description
+      });
+
       await base44.functions.invoke('sendNewTicketNotification', {
         ticketId: newTicket.id,
         displayId,
@@ -143,7 +156,7 @@ export default function ClientPortal() {
         category: formData.category,
         client_name: currentUserDisplayName,
         client_email: user.email,
-        assigned_agent_email: formData.assigned_agent_email
+        assigned_agent_email: assignedAgentEmail
       });
       
       toast.success(`Ticket #${displayId} created successfully!`);
