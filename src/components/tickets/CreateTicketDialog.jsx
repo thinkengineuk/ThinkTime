@@ -44,7 +44,7 @@ export default function CreateTicketDialog({
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ["allUsersForTicketCreation"],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => base44.entities.UserProfile.list(),
     enabled: open && !isClient && isAdmin,
     retry: false
   });
@@ -54,8 +54,8 @@ export default function CreateTicketDialog({
     return org ? ` (${org.name})` : '';
   };
 
-  const clientUsers = allUsers.filter(user => user.user_type === "client" && user.role !== "admin");
-  const agentUsers = allUsers.filter(user => user.user_type === "agent" || user.user_type === "super_admin" || user.role === "admin");
+  const clientUsers = allUsers.filter(user => !user.user_type || user.user_type === "client");
+  const agentUsers = allUsers.filter(user => user.user_type === "agent" || user.user_type === "super_admin");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
