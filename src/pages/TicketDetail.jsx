@@ -648,14 +648,11 @@ export default function TicketDetail() {
                       <SelectContent>
                         {allUsersForWatchers
                           .filter(c => c.email !== ticket.client_email)
-                          .map(u => {
-                            const profile = effectiveUserProfiles.find(p => p.user_id === u.id);
-                            return (
-                              <SelectItem key={u.id} value={u.email}>
-                                {profile?.display_full_name || u.full_name} ({u.email})
-                              </SelectItem>
-                            );
-                          })}
+                          .map(u => (
+                            <SelectItem key={u.id} value={u.email}>
+                              {u.display_full_name || u.full_name} ({u.email})
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   )}
