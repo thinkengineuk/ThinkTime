@@ -37,6 +37,7 @@ export default function Clients() {
     return {
       ...user,
       display_full_name: profile?.display_full_name,
+      user_type: profile?.user_type || user.user_type,
       profile_id: profile?.id
     };
   });
