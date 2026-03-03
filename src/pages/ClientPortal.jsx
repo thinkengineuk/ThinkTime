@@ -97,7 +97,7 @@ export default function ClientPortal() {
       const userProfiles = await base44.entities.UserProfile.list();
       const karlaProfile = userProfiles.find(p => p.email === "karla@thinkengine.co");
       const assignedAgentEmail = "karla@thinkengine.co";
-      const assignedAgentName = karlaProfile?.display_full_name || karlaProfile?.full_name || "Karla Abbott";
+      const assignedAgentName = karlaProfile?.display_full_name || karlaProfile?.full_name || "Karl Abbott";
 
       const ticketData = {
         subject: formData.subject,
