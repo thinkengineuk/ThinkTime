@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin or agent access required' }, { status: 403 });
     }
 
-    const { ticketId, displayId, subject, client_email, client_name, agent_name, reply_body } = await req.json();
+    const { ticketId, displayId, subject, client_email, client_name, agent_name, reply_body, isPending } = await req.json();
 
     // Fetch ticket to get assigned engineer
     const ticket = await base44.asServiceRole.entities.Ticket.get(ticketId);

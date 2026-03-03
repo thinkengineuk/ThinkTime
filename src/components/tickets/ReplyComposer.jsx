@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Send, Lock, Loader2, AtSign } from "lucide-react";
+import { Send, Lock, Loader2, AtSign, Clock } from "lucide-react";
 import AttachmentUploader from "./AttachmentUploader";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
