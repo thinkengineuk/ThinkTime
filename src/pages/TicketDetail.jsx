@@ -586,14 +586,11 @@ export default function TicketDetail() {
                         <SelectValue placeholder="Select client..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {clientUsers.map(client => {
-                          const clientProfile = effectiveUserProfiles.find(p => p.user_id === client.id);
-                          return (
-                            <SelectItem key={client.id} value={client.email}>
-                              {clientProfile?.display_full_name || client.full_name} ({client.email})
-                            </SelectItem>
-                          );
-                        })}
+                        {clientUsers.map(client => (
+                          <SelectItem key={client.id} value={client.email}>
+                            {client.display_full_name || client.full_name} ({client.email})
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
