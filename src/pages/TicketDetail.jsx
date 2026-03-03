@@ -564,21 +564,21 @@ export default function TicketDetail() {
                         if (!newClientEmail) return;
                         
                         const client = clientUsers.find(c => c.email === newClientEmail);
-                        const clientProfile = effectiveUserProfiles.find(p => p.user_id === client?.id);
                         if (client) {
+                          const displayName = client.display_full_name || client.full_name;
                           await updateTicket.mutateAsync({
                             client_email: client.email,
-                            client_name: clientProfile?.display_full_name || client.full_name
+                            client_name: displayName
                           });
                           
                           await base44.functions.invoke('sendTicketLinkedNotification', {
                             displayId: ticket.display_id,
                             subject: ticket.subject,
                             client_email: client.email,
-                            client_name: clientProfile?.display_full_name || client.full_name
+                            client_name: displayName
                           });
                           
-                          toast.success(`Ticket linked to ${clientProfile?.display_full_name || client.full_name}`);
+                          toast.success(`Ticket linked to ${displayName}`);
                         }
                       }}
                     >
