@@ -134,7 +134,6 @@ export default function Clients() {
       user_type: formData.user_type,
       organization_id: formData.organization_id,
       organization_name: org?.name,
-      company_name: formData.company_name,
       full_name: formData.full_name,
       display_full_name: formData.display_full_name,
       profile_id: user?.profile_id
