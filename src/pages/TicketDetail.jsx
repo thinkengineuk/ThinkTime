@@ -127,7 +127,7 @@ export default function TicketDetail() {
 
   const clientUsers = allUsers.filter(u => {
     const profile = userProfiles.find(p => p.user_id === u.id);
-    const effectiveType = profile?.user_type || u.user_type;
+    const effectiveType = profile?.user_type || u.data?.user_type || u.user_type;
     return effectiveType !== "agent" && effectiveType !== "super_admin";
   });
 
