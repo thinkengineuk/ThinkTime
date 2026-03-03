@@ -93,6 +93,12 @@ export default function ClientPortal() {
       });
       const displayId = ticketIdData.display_id;
 
+      // Auto-assign to karla@thinkengine.co
+      const userProfiles = await base44.entities.UserProfile.list();
+      const karlaProfile = userProfiles.find(p => p.email === "karla@thinkengine.co");
+      const assignedAgentEmail = "karla@thinkengine.co";
+      const assignedAgentName = karlaProfile?.display_full_name || karlaProfile?.full_name || "Karla Abbott";
+
       const ticketData = {
         subject: formData.subject,
         description: formData.description,
@@ -102,6 +108,8 @@ export default function ClientPortal() {
         organization_prefix: organization.prefix,
         client_email: user.email,
         client_name: currentUserDisplayName,
+        assigned_agent_email: assignedAgentEmail,
+        assigned_agent_name: assignedAgentName,
         display_id: displayId,
         last_activity: new Date().toISOString(),
         status: "open",
