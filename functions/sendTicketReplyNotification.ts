@@ -71,22 +71,22 @@ Deno.serve(async (req) => {
     
     const recipientEmails = new Set();
 
-    // Add all admins and super admins (excluding the person who replied)
+    // Add all admins and super admins (excluding the person who replied and the client)
     allUsers.forEach(u => {
-      if ((u.role === 'admin' || u.user_type === 'super_admin') && u.email !== user.email) {
+      if ((u.role === 'admin' || u.user_type === 'super_admin') && u.email !== user.email && u.email !== client_email) {
         recipientEmails.add(u.email);
       }
     });
 
-    // Add assigned agent if exists and not already in the list
-    if (ticket?.assigned_agent_email && ticket.assigned_agent_email !== user.email && !recipientEmails.has(ticket.assigned_agent_email)) {
+    // Add assigned agent if exists and not already in the list (and not the client)
+    if (ticket?.assigned_agent_email && ticket.assigned_agent_email !== user.email && ticket.assigned_agent_email !== client_email && !recipientEmails.has(ticket.assigned_agent_email)) {
       recipientEmails.add(ticket.assigned_agent_email);
     }
     
-    // Add watchers if not already in the list
+    // Add watchers if not already in the list (and not the client)
     if (ticket?.watchers) {
       ticket.watchers.forEach(watcher => {
-        if (watcher.email !== user.email && !recipientEmails.has(watcher.email)) {
+        if (watcher.email !== user.email && watcher.email !== client_email && !recipientEmails.has(watcher.email)) {
           recipientEmails.add(watcher.email);
         }
       });
