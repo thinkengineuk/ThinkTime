@@ -80,6 +80,14 @@ export default function ReplyComposer({
 
   return (
     <div className={`rounded-xl border ${isInternal ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200'} p-4 transition-colors`}>
+      {ticketStatus === "pending" && !isInternal && (
+        <Alert className="mb-3 bg-orange-50 border-orange-300">
+          <Clock className="h-4 w-4 text-orange-600" />
+          <AlertDescription className="text-sm text-orange-900">
+            <strong>Auto-close notice:</strong> This ticket is pending client review. Sending this reply will notify the client that if no response is received within <strong>7 days</strong>, the ticket will be automatically closed.
+          </AlertDescription>
+        </Alert>
+      )}
       {showMentionPrompt && detectedNames.length > 0 && (
         <Alert className="mb-3 bg-blue-50 border-blue-200">
           <AtSign className="h-4 w-4 text-blue-600" />

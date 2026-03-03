@@ -42,6 +42,13 @@ Deno.serve(async (req) => {
               ${reply_body.replace(/\n/g, '<br/>')}
             </div>
           </div>
+
+          ${isPending ? `
+          <div style="background-color: #fff7ed; border: 1px solid #fb923c; border-radius: 8px; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; color: #9a3412; font-weight: bold;">⏰ Auto-Close Notice</p>
+            <p style="margin: 8px 0 0; color: #9a3412;">This ticket is currently pending your review. If no response is received within <strong>7 days</strong>, this ticket will be automatically closed. Please reply if you still need assistance.</p>
+          </div>
+          ` : ''}
           
           <p>You can view and reply to this ticket by logging into your support portal: <a href="https://thinktime.support" style="color: #2563eb;">https://thinktime.support</a></p>
           
