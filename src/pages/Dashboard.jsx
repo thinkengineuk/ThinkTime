@@ -115,7 +115,7 @@ export default function Dashboard() {
         assignedAgentEmail = "karla@thinkengine.co";
         const userProfiles = await base44.entities.UserProfile.list();
         const karlaProfile = userProfiles.find(p => p.email === "karla@thinkengine.co");
-        assignedAgentName = karlaProfile?.display_full_name || karlaProfile?.full_name || "Karla Abbott";
+        assignedAgentName = karlaProfile?.display_full_name || karlaProfile?.full_name || "Karl Abbott";
       }
 
       const ticketData = {
