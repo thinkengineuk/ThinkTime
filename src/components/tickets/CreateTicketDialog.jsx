@@ -177,10 +177,10 @@ export default function CreateTicketDialog({
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Auto-assign to Karla Abbott" />
+                  <SelectValue placeholder="Auto-assign to Karl Abbott" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>Auto-assign to Karla Abbott</SelectItem>
+                  <SelectItem value={null}>Auto-assign to Karl Abbott</SelectItem>
                   {agentUsers.map(agent => (
                     <SelectItem key={agent.email} value={agent.email}>
                       {agent.full_name} ({agent.email}){getOrgName(agent.organization_id)}
