@@ -183,7 +183,7 @@ export default function CreateTicketDialog({
                   <SelectItem value={null}>Auto-assign to Karl Abbott</SelectItem>
                   {agentUsers.map(agent => (
                     <SelectItem key={agent.email} value={agent.email}>
-                      {agent.full_name} ({agent.email}){getOrgName(agent.organization_id)}
+                      {agent.display_full_name || agent.full_name} ({agent.email}){getOrgName(agent.organization_id)}
                     </SelectItem>
                   ))}
                 </SelectContent>
