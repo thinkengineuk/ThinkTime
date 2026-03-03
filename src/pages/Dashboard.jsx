@@ -284,8 +284,8 @@ export default function Dashboard() {
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard title="Open Tickets" value={stats.open} icon={Ticket} color="sky" />
-          <StatsCard title="Pending" value={stats.pending} icon={Clock} color="amber" />
-          <StatsCard title="Resolved" value={stats.resolved} icon={CheckCircle} color="emerald" />
+          <StatsCard title="Pending (with client to review)" value={stats.pending} icon={Clock} color="amber" />
+          <StatsCard title="Closed" value={stats.resolved} icon={CheckCircle} color="emerald" />
           <StatsCard title="Urgent" value={stats.urgent} icon={AlertTriangle} color="rose" />
         </div>
 
