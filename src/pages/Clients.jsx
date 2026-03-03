@@ -141,7 +141,8 @@ export default function Clients() {
   };
 
   const handleDeleteUser = (userId) => {
-    deleteUserMutation.mutate(userId);
+    const user = mergedUsers.find(u => u.id === userId);
+    deleteUserMutation.mutate(user?.profile_id || userId);
   };
 
   return (
