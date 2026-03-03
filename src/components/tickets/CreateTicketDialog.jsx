@@ -169,11 +169,11 @@ export default function CreateTicketDialog({
                 value={form.assigned_agent_email}
                 onValueChange={(email) => {
                   const selectedAgent = agentUsers.find(user => user.email === email);
-                  setForm({
-                    ...form,
-                    assigned_agent_email: email,
-                    assigned_agent_name: selectedAgent ? selectedAgent.full_name : ""
-                  });
+                   setForm({
+                     ...form,
+                     assigned_agent_email: email,
+                     assigned_agent_name: selectedAgent ? (selectedAgent.display_full_name || selectedAgent.full_name) : ""
+                   });
                 }}
               >
                 <SelectTrigger>
