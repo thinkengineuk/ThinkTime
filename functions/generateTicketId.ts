@@ -28,19 +28,7 @@ Deno.serve(async (req) => {
       ticket_counter: newCounter 
     });
 
-    // Generate display ID - Base44 encoding
-    const base44Chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
-    const encode = (num) => {
-      if (num === 0) return base44Chars[0];
-      let result = '';
-      while (num > 0) {
-        result = base44Chars[num % 44] + result;
-        num = Math.floor(num / 44);
-      }
-      return result;
-    };
-
-    const displayId = `${org.prefix}-${encode(newCounter)}`;
+    const displayId = `${org.prefix}-${newCounter}`;
 
     return Response.json({ 
       display_id: displayId,
