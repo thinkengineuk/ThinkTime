@@ -238,7 +238,7 @@ export default function Dashboard() {
   const stats = {
     open: tickets.filter(t => t.status === "open").length,
     pending: tickets.filter(t => t.status === "pending").length,
-    resolved: tickets.filter(t => t.status === "resolved").length,
+    resolved: tickets.filter(t => t.status === "closed").length,
     urgent: tickets.filter(t => t.priority === "urgent" && ["open", "pending"].includes(t.status)).length
   };
 
