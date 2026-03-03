@@ -608,8 +608,7 @@ export default function TicketDetail() {
                         if (!watcherEmail) return;
                         
                         const watcher = allUsersForWatchers.find(c => c.email === watcherEmail);
-                        const watcherProfile = effectiveUserProfiles.find(p => p.user_id === watcher?.id);
-                        const watcherDisplayName = watcherProfile?.display_full_name || watcher?.full_name;
+                        const watcherDisplayName = watcher?.display_full_name || watcher?.full_name;
                         
                         if (watcher) {
                           const currentWatchers = ticket.watchers || [];
