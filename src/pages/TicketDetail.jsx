@@ -98,7 +98,7 @@ export default function TicketDetail() {
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ["allUsers"],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => base44.entities.UserProfile.list(),
     enabled: !!user && isAgent
   });
 
