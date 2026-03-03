@@ -26,16 +26,12 @@ export default function Clients() {
     queryFn: () => base44.entities.Organization.list()
   });
 
-  // Merge users with their profiles
-  const mergedUsers = users.map(user => {
-    const profile = userProfiles.find(p => p.user_id === user.id);
-    return {
-      ...user,
-      display_full_name: profile?.display_full_name,
-      user_type: profile?.user_type || user.user_type,
-      profile_id: profile?.id
-    };
-  });
+  // Build merged users directly from UserProfile (better RLS for admins)
+  const mergedUsers = userProfiles.map(profile => ({
+    ...profile,
+    id: profile.user_id,
+    profile_id: profile.id
+  }));
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, user_type, organization_id, organization_name, company_name, full_name, display_full_name, profile_id }) => {
