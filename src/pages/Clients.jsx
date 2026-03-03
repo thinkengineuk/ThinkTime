@@ -34,50 +34,37 @@ export default function Clients() {
   }));
 
   const updateUserMutation = useMutation({
-    mutationFn: async ({ userId, user_type, organization_id, organization_name, company_name, full_name, display_full_name, profile_id }) => {
-      await base44.entities.User.update(userId, { 
-        user_type,
-        organization_id,
-        organization_name,
-        company_name,
-        full_name
-      });
-      
-      // Update or create UserProfile with display_full_name
-      if (display_full_name !== undefined) {
-        if (profile_id) {
-          await base44.entities.UserProfile.update(profile_id, {
-            display_full_name
-          });
-        } else {
-          // If no profile exists, create one
-          const userToProfile = users.find(u => u.id === userId);
-          if (userToProfile) {
-            await base44.entities.UserProfile.create({
-              user_id: userId,
-              email: userToProfile.email,
-              full_name: userToProfile.full_name || '',
-              display_full_name: display_full_name,
-              user_type: userToProfile.user_type || 'client',
-              organization_id: userToProfile.organization_id || null
-            });
-          }
-        }
+    mutationFn: async ({ userId, user_type, organization_id, organization_name, display_full_name, full_name, profile_id }) => {
+      if (profile_id) {
+        await base44.entities.UserProfile.update(profile_id, {
+          user_type,
+          organization_id,
+          display_full_name,
+          full_name
+        });
+      } else {
+        await base44.entities.UserProfile.create({
+          user_id: userId,
+          email: mergedUsers.find(u => u.id === userId)?.email || '',
+          full_name: full_name || '',
+          display_full_name: display_full_name || '',
+          user_type: user_type || 'client',
+          organization_id: organization_id || null
+        });
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["users"]);
       queryClient.invalidateQueries(["userProfiles"]);
       setEditingUser(null);
     },
   });
 
   const deleteUserMutation = useMutation({
-    mutationFn: async (userId) => {
-      await base44.entities.User.delete(userId);
+    mutationFn: async (profileId) => {
+      await base44.entities.UserProfile.delete(profileId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["users"]);
+      queryClient.invalidateQueries(["userProfiles"]);
       setEditingUser(null);
     },
   });
