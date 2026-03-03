@@ -126,7 +126,7 @@ export default function TicketDetail() {
   };
 
   const clientUsers = allUsers.filter(u => 
-    u.user_type !== "agent" && u.user_type !== "super_admin" && u.role !== "admin"
+    u.user_type !== "agent" && u.user_type !== "super_admin"
   );
 
   const allUsersForWatchers = allUsers;
