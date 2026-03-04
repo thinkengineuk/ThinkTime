@@ -1,124 +1,171 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+function emailTemplate({ preheader, headerLabel, title, bodyHtml }) {
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',Arial,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;">${preheader}</div>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+        <tr>
+          <td style="padding:0 0 16px 0;" align="center">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/697352909f0a3344c678f67e/34209a095_BlueandBlackMinimalistBrandLogo.png" alt="ThinkTime" height="36" style="display:block;" />
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#ffffff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;">
+            <div style="height:4px;background:linear-gradient(90deg,#0ea5e9,#1e3a8a);"></div>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:28px 32px 8px 32px;">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#64748b;text-transform:uppercase;">${headerLabel}</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:4px 32px 24px 32px;">
+                  <h1 style="margin:0;font-size:22px;font-weight:700;color:#0f172a;line-height:1.3;">${title}</h1>
+                </td>
+              </tr>
+              <tr><td style="padding:0 32px 28px 32px;">${bodyHtml}</td></tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 0 0 0;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#94a3b8;">ThinkTime Support · <a href="https://thinktime.support" style="color:#64748b;">thinktime.support</a></p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+function commentBubble(comment, isMostRecent) {
+  const isAgent = comment.author_role === 'agent';
+  return `
+    <div style="margin-bottom:12px;">
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;font-weight:500;">
+        ${comment.author_name || comment.author_email}
+        <span style="font-weight:400;margin-left:4px;">${isAgent ? '· Engineer' : '· Client'}</span>
+      </div>
+      <div style="background:${isMostRecent ? (isAgent ? '#e0f2fe' : '#f0fdf4') : '#f8fafc'};border-left:3px solid ${isMostRecent ? (isAgent ? '#0ea5e9' : '#22c55e') : '#cbd5e1'};border-radius:0 8px 8px 0;padding:12px 16px;font-size:14px;color:#334155;line-height:1.7;white-space:pre-wrap;">${(comment.body || '').replace(/\n/g, '<br/>')}</div>
+    </div>
+  `;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
-    // Authentication and authorization check
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
-    // Only admins and agents can send ticket reply notifications
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
     const isAuthorized = user.role === 'admin' || user.user_type === 'agent' || user.user_type === 'super_admin';
-    if (!isAuthorized) {
-      return Response.json({ error: 'Forbidden: Admin or agent access required' }, { status: 403 });
-    }
+    if (!isAuthorized) return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const { ticketId, displayId, subject, client_email, client_name, agent_name, reply_body, isPending } = await req.json();
 
-    // Fetch ticket to get assigned engineer
     const ticket = await base44.asServiceRole.entities.Ticket.get(ticketId);
 
-    // Fetch client user to check if they have logged in before
+    // Fetch last 2 comments for context
+    const recentComments = await base44.asServiceRole.entities.Comment.filter(
+      { ticket_id: ticketId, is_internal: false },
+      '-created_date',
+      2
+    );
+    const sortedComments = [...recentComments].reverse();
+
     const clientUsers = await base44.asServiceRole.entities.User.filter({ email: client_email });
     const clientUser = clientUsers.length > 0 ? clientUsers[0] : null;
-    const hasClientLoggedInBefore = clientUser && clientUser.has_logged_in_before;
 
-    // Always send email to client if client email is present
+    // --- Email to client ---
     if (client_email) {
-      const firstName = client_name.split(' ')[0];
-      
-      const clientEmailBody = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2563eb;">New Reply on Your Support Ticket</h2>
-          <p>Hi ${firstName},</p>
-          <p>${agent_name} has replied to your ticket <strong>#${displayId}</strong>:</p>
-          
-          <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">${subject}</h3>
-            <div style="color: #475569; line-height: 1.6; white-space: pre-wrap;">
-              ${reply_body.replace(/\n/g, '<br/>')}
-            </div>
-          </div>
+      const firstName = client_name ? client_name.split(' ')[0] : 'there';
 
-          ${isPending ? `
-          <div style="background-color: #fff7ed; border: 1px solid #fb923c; border-radius: 8px; padding: 15px; margin: 20px 0;">
-            <p style="margin: 0; color: #9a3412; font-weight: bold;">⏰ Auto-Close Notice</p>
-            <p style="margin: 8px 0 0; color: #9a3412;">This ticket is currently pending your review. If no response is received within <strong>7 days</strong>, this ticket will be automatically closed. Please reply if you still need assistance.</p>
-          </div>
-          ` : ''}
-          
-          <p>You can view and reply to this ticket by logging into your support portal: <a href="https://thinktime.support" style="color: #2563eb;">https://thinktime.support</a></p>
-          
-          <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-            This is an automated message from your support system.
-          </p>
+      const conversationHtml = sortedComments.length > 0 ? `
+        <div style="margin-bottom:20px;">
+          <p style="margin:0 0 10px 0;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">Conversation</p>
+          ${sortedComments.map((c, i) => commentBubble(c, i === sortedComments.length - 1)).join('')}
         </div>
+      ` : '';
+
+      const pendingNotice = isPending ? `
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:14px 16px;margin-bottom:20px;">
+          <p style="margin:0;font-size:13px;color:#9a3412;font-weight:600;">⏰ Action Required</p>
+          <p style="margin:6px 0 0;font-size:13px;color:#9a3412;line-height:1.6;">This ticket is pending your review. If no response is received within <strong>7 days</strong>, it will be automatically closed.</p>
+        </div>
+      ` : '';
+
+      const bodyHtml = `
+        <p style="margin:0 0 20px 0;font-size:14px;color:#475569;">Hi ${firstName}, <strong>${agent_name}</strong> has replied to your ticket <span style="font-family:monospace;background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:4px;font-size:12px;">${displayId}</span>.</p>
+        ${pendingNotice}
+        ${conversationHtml}
+        <a href="https://thinktime.support" style="display:inline-block;background:linear-gradient(90deg,#0ea5e9,#1e3a8a);color:#ffffff;text-decoration:none;padding:11px 22px;border-radius:7px;font-size:14px;font-weight:600;">View & Reply →</a>
       `;
 
-      // Send email to client
+      const html = emailTemplate({
+        preheader: `${agent_name} replied to ticket ${displayId}`,
+        headerLabel: `Ticket ${displayId}`,
+        title: subject,
+        bodyHtml
+      });
+
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: client_email,
         subject: `Re: [${displayId}] ${subject}`,
-        body: clientEmailBody
+        body: html
       });
     }
 
-    // Fetch all users to identify admins and agents
+    // --- Email to admins/agents/watchers ---
     const allUsers = await base44.asServiceRole.entities.User.list();
-    
     const recipientEmails = new Set();
 
-    // Add all admins and super admins (excluding the person who replied and the client)
     allUsers.forEach(u => {
       if ((u.role === 'admin' || u.user_type === 'super_admin') && u.email !== user.email && u.email !== client_email) {
         recipientEmails.add(u.email);
       }
     });
 
-    // Add assigned agent if exists and not already in the list (and not the client)
-    if (ticket?.assigned_agent_email && ticket.assigned_agent_email !== user.email && ticket.assigned_agent_email !== client_email && !recipientEmails.has(ticket.assigned_agent_email)) {
+    if (ticket?.assigned_agent_email && ticket.assigned_agent_email !== user.email && ticket.assigned_agent_email !== client_email) {
       recipientEmails.add(ticket.assigned_agent_email);
     }
-    
-    // Add watchers if not already in the list (and not the client)
+
     if (ticket?.watchers) {
-      ticket.watchers.forEach(watcher => {
-        if (watcher.email !== user.email && watcher.email !== client_email && !recipientEmails.has(watcher.email)) {
-          recipientEmails.add(watcher.email);
-        }
+      ticket.watchers.forEach(w => {
+        if (w.email !== user.email && w.email !== client_email) recipientEmails.add(w.email);
       });
     }
 
-    // Send emails to all recipients
     for (const email of recipientEmails) {
-      const emailBody = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2563eb;">Update on Ticket #${displayId}</h2>
-          <p>Hi,</p>
-          <p>${agent_name} has replied to ticket <strong>#${displayId}</strong>:</p>
-          
-          <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">${subject}</h3>
-            <div style="color: #475569; line-height: 1.6; white-space: pre-wrap;">
-              ${reply_body.replace(/\n/g, '<br/>')}
-            </div>
-          </div>
-          
-          <p>View ticket details: <a href="https://thinktime.support" style="color: #2563eb;">https://thinktime.support</a></p>
-          
-          <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-            This is an automated message from your support system.
-          </p>
+      const conversationHtml = sortedComments.length > 0 ? `
+        <div style="margin-bottom:20px;">
+          <p style="margin:0 0 10px 0;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">Conversation</p>
+          ${sortedComments.map((c, i) => commentBubble(c, i === sortedComments.length - 1)).join('')}
         </div>
+      ` : '';
+
+      const bodyHtml = `
+        <p style="margin:0 0 20px 0;font-size:14px;color:#475569;"><strong>${agent_name}</strong> replied to ticket <span style="font-family:monospace;background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:4px;font-size:12px;">${displayId}</span>.</p>
+        ${conversationHtml}
+        <a href="https://thinktime.support" style="display:inline-block;background:linear-gradient(90deg,#0ea5e9,#1e3a8a);color:#ffffff;text-decoration:none;padding:11px 22px;border-radius:7px;font-size:14px;font-weight:600;">View Ticket →</a>
       `;
+
+      const html = emailTemplate({
+        preheader: `${agent_name} replied to ${displayId}`,
+        headerLabel: `Ticket Update · ${displayId}`,
+        title: subject,
+        bodyHtml
+      });
 
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: email,
         subject: `Update: [${displayId}] ${subject}`,
-        body: emailBody
+        body: html
       });
     }
 
