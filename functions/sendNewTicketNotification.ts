@@ -20,12 +20,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: You can only create tickets for yourself' }, { status: 403 });
     }
 
-    // Fetch all users to identify administrators and agents
-    const users = await base44.asServiceRole.entities.User.list();
+    // Fetch all user profiles to identify administrators and agents
+    const userProfiles = await base44.asServiceRole.entities.UserProfile.list();
     
-    // Collect emails of all users with role 'admin' or user_type 'super_admin' or 'agent'
-    const adminEmails = users
-      .filter(u => u.role === 'admin' || u.user_type === 'super_admin' || u.user_type === 'agent')
+    // Collect emails of all users with user_type 'super_admin' or 'agent'
+    const adminEmails = userProfiles
+      .filter(u => u.user_type === 'super_admin' || u.user_type === 'agent')
       .map(u => u.email);
 
     let recipientEmails = [...adminEmails];
