@@ -44,15 +44,24 @@ function emailTemplate({ preheader, headerLabel, title, bodyHtml }) {
 </html>`;
 }
 
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+}
+
+// isMostRecent = true means this is the newest comment (shown first/top)
 function commentBubble(comment, isMostRecent) {
   const isAgent = comment.author_role === 'agent';
+  const dateStr = comment.created_date ? formatDate(comment.created_date) : '';
   return `
-    <div style="margin-bottom:12px;">
-      <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;font-weight:500;">
-        ${comment.author_name || comment.author_email}
-        <span style="font-weight:400;margin-left:4px;">${isAgent ? '· Engineer' : '· Client'}</span>
+    <div style="margin-bottom:6px;">
+      <div style="font-size:11px;color:#64748b;margin-bottom:3px;font-weight:500;display:flex;align-items:center;gap:8px;">
+        <strong style="color:#334155;">${comment.author_name || comment.author_email}</strong>
+        <span style="font-weight:400;">· ${isAgent ? 'Engineer' : 'Client'}</span>
+        ${dateStr ? `<span style="color:#94a3b8;margin-left:4px;">${dateStr}</span>` : ''}
       </div>
-      <div style="background:${isMostRecent ? (isAgent ? '#e0f2fe' : '#f0fdf4') : '#f8fafc'};border-left:3px solid ${isMostRecent ? (isAgent ? '#0ea5e9' : '#22c55e') : '#cbd5e1'};border-radius:0 8px 8px 0;padding:12px 16px;font-size:14px;color:#334155;line-height:1.7;white-space:pre-wrap;">${(comment.body || '').replace(/\n/g, '<br/>')}</div>
+      <div style="background:${isMostRecent ? (isAgent ? '#e0f2fe' : '#f0fdf4') : '#f8fafc'};border-left:3px solid ${isMostRecent ? (isAgent ? '#0ea5e9' : '#22c55e') : '#cbd5e1'};border-radius:0 8px 8px 0;padding:12px 16px;font-size:14px;color:#334155;line-height:1.6;">${(comment.body || '').replace(/\n/g, '<br/>')}</div>
     </div>
   `;
 }
@@ -71,25 +80,22 @@ Deno.serve(async (req) => {
 
     const ticket = await base44.asServiceRole.entities.Ticket.get(ticketId);
 
-    // Fetch last 2 comments for context
+    // Fetch last 2 non-internal comments, newest first (index 0 = newest)
     const recentComments = await base44.asServiceRole.entities.Comment.filter(
       { ticket_id: ticketId, is_internal: false },
       '-created_date',
       2
     );
-    const sortedComments = [...recentComments].reverse();
-
-    const clientUsers = await base44.asServiceRole.entities.User.filter({ email: client_email });
-    const clientUser = clientUsers.length > 0 ? clientUsers[0] : null;
 
     // --- Email to client ---
     if (client_email) {
       const firstName = client_name ? client_name.split(' ')[0] : 'there';
 
-      const conversationHtml = sortedComments.length > 0 ? `
+      // newest first: recentComments[0] is newest, recentComments[1] is previous
+      const conversationHtml = recentComments.length > 0 ? `
         <div style="margin-bottom:20px;">
-          <p style="margin:0 0 10px 0;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">Conversation</p>
-          ${sortedComments.map((c, i) => commentBubble(c, i === sortedComments.length - 1)).join('')}
+          <p style="margin:0 0 8px 0;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">Conversation</p>
+          ${recentComments.map((c, i) => commentBubble(c, i === 0)).join('')}
         </div>
       ` : '';
 
@@ -142,10 +148,10 @@ Deno.serve(async (req) => {
     }
 
     for (const email of recipientEmails) {
-      const conversationHtml = sortedComments.length > 0 ? `
+      const conversationHtml = recentComments.length > 0 ? `
         <div style="margin-bottom:20px;">
-          <p style="margin:0 0 10px 0;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">Conversation</p>
-          ${sortedComments.map((c, i) => commentBubble(c, i === sortedComments.length - 1)).join('')}
+          <p style="margin:0 0 8px 0;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">Conversation</p>
+          ${recentComments.map((c, i) => commentBubble(c, i === 0)).join('')}
         </div>
       ` : '';
 
