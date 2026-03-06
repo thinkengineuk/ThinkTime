@@ -35,7 +35,7 @@ function CountdownBadge({ createdAt, onExpire }) {
   );
 }
 
-export default function CommentThread({ comments, currentUserEmail, onCommentUpdated, onCommentDeleted }) {
+export default function CommentThread({ comments, currentUserEmail, isAdmin, onCommentUpdated, onCommentDeleted }) {
   const [editingId, setEditingId] = useState(null);
   const [editBody, setEditBody] = useState("");
   const [saving, setSaving] = useState(false);
