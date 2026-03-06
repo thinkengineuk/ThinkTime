@@ -412,6 +412,7 @@ export default function TicketDetail() {
               <CommentThread
                 comments={comments}
                 currentUserEmail={user?.email}
+                isAdmin={user?.role === "admin" || user?.user_type === "super_admin"}
                 onCommentUpdated={(id, newBody, newScheduledAt) => {
                   // Re-schedule the notification for the edited comment
                   const comment = comments.find(c => c.id === id);
