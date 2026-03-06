@@ -211,24 +211,28 @@ export default function CommentThread({ comments, currentUserEmail, isAdmin, onC
                   </div>
                 )}
 
-                {canAct && !isEditing && (
+                {(canEdit(comment) || canDelete(comment)) && !isEditing && (
                   <div className="flex gap-1 mt-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleEdit(comment)}
-                      className="h-6 text-xs px-2 text-slate-500 hover:text-blue-600"
-                    >
-                      <Pencil className="w-3 h-3 mr-1" /> Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(comment)}
-                      className="h-6 text-xs px-2 text-slate-500 hover:text-red-600"
-                    >
-                      <Trash2 className="w-3 h-3 mr-1" /> Delete
-                    </Button>
+                    {canEdit(comment) && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEdit(comment)}
+                        className="h-6 text-xs px-2 text-slate-500 hover:text-blue-600"
+                      >
+                        <Pencil className="w-3 h-3 mr-1" /> Edit
+                      </Button>
+                    )}
+                    {canDelete(comment) && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(comment)}
+                        className="h-6 text-xs px-2 text-slate-500 hover:text-red-600"
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" /> Delete
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
