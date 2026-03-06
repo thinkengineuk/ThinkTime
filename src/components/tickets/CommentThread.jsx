@@ -63,7 +63,11 @@ export default function CommentThread({ comments, currentUserEmail, isAdmin, onC
     return elapsed < EDIT_WINDOW_MS;
   };
 
-  const canEditOrDelete = (comment) => {
+  const canDelete = (comment) => {
+    return isAdmin || (comment.author_email === currentUserEmail && isInEditWindow(comment));
+  };
+
+  const canEdit = (comment) => {
     return comment.author_email === currentUserEmail && isInEditWindow(comment);
   };
 
