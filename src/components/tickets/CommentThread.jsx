@@ -155,7 +155,7 @@ export default function CommentThread({ comments, currentUserEmail, isAdmin, onC
                     {comment.source === 'email' ? <Mail className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
                     {formatDistanceToNow(new Date(comment.created_date), { addSuffix: true })}
                   </span>
-                  {canAct && !isEditing && (
+                  {canEdit(comment) && !isEditing && (
                     <CountdownBadge
                       createdAt={comment.created_date}
                       onExpire={() => setExpiredIds(prev => new Set([...prev, comment.id]))}
