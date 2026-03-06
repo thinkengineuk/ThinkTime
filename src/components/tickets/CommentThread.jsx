@@ -118,7 +118,6 @@ export default function CommentThread({ comments, currentUserEmail, isAdmin, onC
         const isCurrentUser = comment.author_email === currentUserEmail;
         const isAgent = comment.author_role === "agent";
         const isInternal = comment.is_internal;
-        const canAct = canEditOrDelete(comment);
         const isEditing = editingId === comment.id;
 
         return (
