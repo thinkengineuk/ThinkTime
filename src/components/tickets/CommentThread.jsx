@@ -71,9 +71,14 @@ export default function CommentThread({ comments, currentUserEmail, isAdmin, onC
     return comment.author_email === currentUserEmail && isInEditWindow(comment);
   };
 
-  const handleEdit = (comment) => {
+  const handleEdit = async (comment) => {
     setEditingId(comment.id);
     setEditBody(comment.body);
+    // Cancel any pending notification by nullifying the scheduled timestamp.
+    // The in-flight scheduleCommentNotification will see the mismatch and abort.
+    if (!comment.is_internal && !comment.notification_sent) {
+      await base44.entities.Comment.update(comment.id, { notification_scheduled_at: null });
+    }
   };
 
   const handleCancelEdit = () => {
