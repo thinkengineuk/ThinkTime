@@ -91,14 +91,14 @@ export default function CommentThread({ comments, currentUserEmail, isAdmin, onC
     setSaving(true);
     try {
       const now = new Date().toISOString();
-      const updated = await base44.entities.Comment.update(comment.id, {
+      await base44.entities.Comment.update(comment.id, {
         body: editBody,
-        // Reset the scheduled_at so the delayed notification re-fires from this edit
         notification_scheduled_at: now,
         notification_sent: false
       });
       setEditingId(null);
       setEditBody("");
+      // Restart the 30s notification timer only now that the user has confirmed their edit
       if (onCommentUpdated) onCommentUpdated(comment.id, editBody, now);
       toast.success("Comment updated");
     } catch (e) {
