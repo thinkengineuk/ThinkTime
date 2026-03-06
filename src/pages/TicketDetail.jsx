@@ -157,31 +157,35 @@ export default function TicketDetail() {
 
   const addComment = useMutation({
     mutationFn: async (data) => {
+      const scheduledAt = new Date().toISOString();
+      const authorRole = user.user_type === "client" ? "client" : "agent";
+
       const comment = await base44.entities.Comment.create({
         ticket_id: ticketId,
         ticket_display_id: ticket.display_id,
         author_email: user.email,
         author_name: currentUserDisplayName,
-        author_role: user.user_type === "client" ? "client" : "agent",
+        author_role: authorRole,
         body: data.body,
         is_internal: data.isInternal,
         source: "web",
-        attachments: data.attachments || []
+        attachments: data.attachments || [],
+        notification_scheduled_at: scheduledAt,
+        notification_sent: false
       });
 
-      const isPending = ticket.status === 'pending';
-
-      // Send notification for the new comment
-      await base44.functions.invoke('sendTicketReplyNotification', {
-        ticketId: ticket.id,
-        displayId: ticket.display_id,
-        subject: ticket.subject,
-        client_email: ticket.client_email,
-        client_name: ticket.client_name,
-        agent_name: currentUserDisplayName,
-        reply_body: data.body,
-        isPending
-      });
+      // Only schedule delayed notification for non-internal comments
+      if (!data.isInternal) {
+        // Fire-and-forget: the function waits 30s then sends the email
+        base44.functions.invoke('scheduleCommentNotification', {
+          commentId: comment.id,
+          ticketId: ticket.id,
+          scheduledAt,
+          isPending: ticket.status === 'pending',
+          authorRole,
+          authorName: currentUserDisplayName
+        });
+      }
 
       if (data.body.includes('@')) {
         await base44.functions.invoke('handleMentionNotifications', {
@@ -405,7 +409,28 @@ export default function TicketDetail() {
                 />
               </div>
 
-              <CommentThread comments={comments} currentUserEmail={user?.email} />
+              <CommentThread
+                comments={comments}
+                currentUserEmail={user?.email}
+                onCommentUpdated={(id, newBody, newScheduledAt) => {
+                  // Re-schedule the notification for the edited comment
+                  const comment = comments.find(c => c.id === id);
+                  if (comment && !comment.is_internal) {
+                    base44.functions.invoke('scheduleCommentNotification', {
+                      commentId: id,
+                      ticketId: ticket.id,
+                      scheduledAt: newScheduledAt,
+                      isPending: ticket.status === 'pending',
+                      authorRole: comment.author_role,
+                      authorName: comment.author_name
+                    });
+                  }
+                  queryClient.invalidateQueries(["comments", ticketId]);
+                }}
+                onCommentDeleted={() => {
+                  queryClient.invalidateQueries(["comments", ticketId]);
+                }}
+              />
             </Card>
           </div>
 
