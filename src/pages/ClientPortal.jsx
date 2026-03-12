@@ -26,8 +26,8 @@ export default function ClientPortal() {
   });
 
   const currentUserDisplayName = isLoadingProfile
-    ? ""
-    : clientUserProfile?.display_full_name?.split(' ')[0] || clientUserProfile?.full_name?.split(' ')[0] || user?.email;
+    ? null
+    : clientUserProfile?.display_full_name?.split(' ')[0] || user?.full_name?.split(' ')[0] || user?.email;
 
   const clientOrganizationId = user?.organization_id;
 
