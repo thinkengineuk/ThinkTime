@@ -72,12 +72,12 @@ export default function Clients() {
   });
 
   const addUserMutation = useMutation({
-    mutationFn: async ({ full_name, email, user_type, organization_id }) => {
+    mutationFn: async ({ full_name, display_full_name, email, user_type, organization_id, user_id }) => {
       await base44.entities.UserProfile.create({
-        user_id: email, // use email as user_id placeholder since we don't have the real Base44 user id
+        user_id: user_id || email,
         email,
         full_name,
-        display_full_name: full_name,
+        display_full_name: display_full_name || full_name,
         user_type,
         organization_id: organization_id || null
       });
