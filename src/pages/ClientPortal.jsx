@@ -199,7 +199,7 @@ export default function ClientPortal() {
                 <h1 className="text-3xl font-bold" style={{ color: brandColor }}>
                   {organization?.name || "Support"} Portal
                 </h1>
-                <p className="text-slate-600 mt-1">Welcome back, {currentUserDisplayName}</p>
+                <p className="text-slate-600 mt-1">Welcome back</p>
               </div>
             </div>
             <Button 
