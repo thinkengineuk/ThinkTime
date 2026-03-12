@@ -146,7 +146,7 @@ export default function Clients() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50/30">
+    <div className="bg-gradient-to-br from-slate-50 via-white to-sky-50/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-blue-900 flex items-center justify-center shadow-lg shadow-sky-500/30">
