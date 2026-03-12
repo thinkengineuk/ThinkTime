@@ -78,7 +78,7 @@ export default function Clients() {
   );
 
   // Group users by type
-  const admins = filteredUsers.filter(u => u.user_type === 'super_admin');
+  const admins = filteredUsers.filter(u => u.user_type === 'super_admin' || u.user_type === 'admin');
   const engineers = filteredUsers.filter(u => u.user_type === 'agent');
   const clients = filteredUsers.filter(u => !u.user_type || u.user_type === 'client');
 
