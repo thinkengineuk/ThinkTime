@@ -11,9 +11,11 @@ import { Loader2 } from "lucide-react";
 export default function AddUserDialog({ open, onOpenChange, organizations, onAdd, isSaving, existingProfileEmails = [] }) {
   const [form, setForm] = useState({
     full_name: "",
+    display_full_name: "",
     email: "",
     user_type: "client",
-    organization_id: ""
+    organization_id: "",
+    user_id: ""
   });
 
   // Fetch all Base44 users
