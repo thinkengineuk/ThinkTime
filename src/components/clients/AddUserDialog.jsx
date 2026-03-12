@@ -73,11 +73,20 @@ export default function AddUserDialog({ open, onOpenChange, organizations, onAdd
             </div>
           )}
           <div className="space-y-1">
-            <Label>Full Name *</Label>
+            <Label>Full Name</Label>
+            <Input
+              value={form.full_name}
+              readOnly
+              className="bg-slate-50 text-slate-500 cursor-not-allowed"
+              placeholder="Auto-filled from selected user"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>User Full Name *</Label>
             <Input
               placeholder="e.g. Adam Paterson"
-              value={form.full_name}
-              onChange={(e) => setForm(f => ({ ...f, full_name: e.target.value }))}
+              value={form.display_full_name}
+              onChange={(e) => setForm(f => ({ ...f, display_full_name: e.target.value }))}
             />
           </div>
           <div className="space-y-1">
