@@ -36,13 +36,14 @@ export default function Clients() {
   }));
 
   const updateUserMutation = useMutation({
-    mutationFn: async ({ userId, user_type, organization_id, organization_name, display_full_name, full_name, profile_id }) => {
+    mutationFn: async ({ userId, user_type, organization_id, organization_name, display_full_name, full_name, company_name, profile_id }) => {
       if (profile_id) {
         await base44.entities.UserProfile.update(profile_id, {
           user_type,
           organization_id,
           display_full_name,
-          full_name
+          full_name,
+          company_name
         });
       } else {
         await base44.entities.UserProfile.create({
