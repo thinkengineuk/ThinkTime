@@ -17,7 +17,7 @@ export default function Clients() {
 
   const { data: userProfiles = [], isLoading: isLoadingProfiles } = useQuery({
     queryKey: ["userProfiles"],
-    queryFn: () => base44.entities.UserProfile.list(),
+    queryFn: () => base44.entities.UserProfile.list(undefined, 200),
     refetchInterval: 3000
   });
 
