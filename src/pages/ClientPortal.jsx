@@ -25,7 +25,7 @@ export default function ClientPortal() {
     enabled: !!user,
   });
 
-  const currentUserDisplayName = clientUserProfile?.display_full_name || user?.email;
+  const currentUserDisplayName = clientUserProfile?.display_full_name || user?.full_name || user?.email;
 
   const clientOrganizationId = user?.organization_id;
 
