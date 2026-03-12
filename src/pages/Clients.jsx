@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Users, Pencil } from "lucide-react";
+import { Loader2, Users, Pencil, UserPlus } from "lucide-react";
 import EditUserDialog from "@/components/clients/EditUserDialog";
+import AddUserDialog from "@/components/clients/AddUserDialog";
 
 export default function Clients() {
   const queryClient = useQueryClient();
