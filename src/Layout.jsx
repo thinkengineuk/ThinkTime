@@ -42,7 +42,7 @@ export default function Layout({ children, currentPageName }) {
     enabled: !!user && isAgent
   });
 
-  const { data: clientUserProfile } = useQuery({
+  const { data: clientUserProfile, isLoading: isLoadingClientProfile } = useQuery({
     queryKey: ["clientUserProfile", user?.id],
     queryFn: () => base44.entities.UserProfile.filter({ user_id: user.id }).then(res => res[0] || null),
     enabled: !!user && isClient
@@ -51,8 +51,10 @@ export default function Layout({ children, currentPageName }) {
   const effectiveUserProfile = isAgent 
     ? userProfiles.find(p => p.user_id === user?.id) 
     : clientUserProfile;
-    
-  const displayName = effectiveUserProfile?.display_full_name?.split(' ')[0] || user?.full_name?.split(' ')[0] || user?.email;
+
+  const displayName = (isClient && isLoadingClientProfile)
+    ? null
+    : (effectiveUserProfile?.display_full_name?.split(' ')[0] || user?.full_name?.split(' ')[0] || user?.email);
 
   const { data: organizations = [] } = useQuery({
     queryKey: ["organizations"],
