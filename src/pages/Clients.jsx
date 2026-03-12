@@ -349,6 +349,90 @@ export default function Clients() {
               </div>
             )}
 
+            {/* Unassigned Section */}
+            {unassigned.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <Badge className="bg-amber-500/10 text-amber-600">Unassigned</Badge>
+                  <span className="text-sm text-slate-500 font-normal">({unassigned.length})</span>
+                </h2>
+                <Card className="bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Full Name</TableHead>
+                        <TableHead>User Full Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Company Name</TableHead>
+                        <TableHead>Base44 Role</TableHead>
+                        <TableHead>Organisation</TableHead>
+                        <TableHead>User Type</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {unassigned.map((user) => (
+                        <TableRow key={user.id} className="bg-amber-50/50">
+                          <TableCell>{user.full_name || "-"}</TableCell>
+                          <TableCell>{user.display_full_name || user.full_name || "-"}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{user.company_name || "-"}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {user.role === "admin" ? "Admin" : "User"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.organization_id || ""}
+                              onValueChange={(value) => handleUpdateOrganization(user.id, value)}
+                              disabled={updateUserMutation.isPending}
+                            >
+                              <SelectTrigger className="w-40">
+                                <SelectValue placeholder="Select org" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {organizations.map(org => (
+                                  <SelectItem key={org.id} value={org.id}>
+                                    {org.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.user_type || ""}
+                              onValueChange={(value) => handleUpdateUserType(user.id, value)}
+                              disabled={updateUserMutation.isPending}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue placeholder="Assign role" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="client">Client</SelectItem>
+                                <SelectItem value="agent">Engineer</SelectItem>
+                                <SelectItem value="super_admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingUser(user)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Card>
+              </div>
+            )}
+
             {/* Clients Section */}
             {clients.length > 0 && (
               <div>
