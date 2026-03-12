@@ -184,6 +184,10 @@ export default function Clients() {
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-sm bg-white/70 backdrop-blur-sm border-slate-200/50 shadow-sm"
           />
+          <Button onClick={() => setAddUserOpen(true)} className="flex items-center gap-2">
+            <UserPlus className="w-4 h-4" />
+            Add User
+          </Button>
         </div>
 
         {isLoadingProfiles || isLoadingOrgs ? (
