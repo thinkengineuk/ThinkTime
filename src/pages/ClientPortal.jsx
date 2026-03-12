@@ -19,13 +19,15 @@ export default function ClientPortal() {
     queryFn: () => base44.auth.me()
   });
 
-  const { data: clientUserProfile } = useQuery({
+  const { data: clientUserProfile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["clientUserProfile", user?.id],
     queryFn: () => base44.entities.UserProfile.filter({ user_id: user.id }).then(res => res[0] || null),
     enabled: !!user,
   });
 
-  const currentUserDisplayName = clientUserProfile?.display_full_name?.split(' ')[0] || user?.full_name?.split(' ')[0] || user?.email;
+  const currentUserDisplayName = isLoadingProfile
+    ? null
+    : clientUserProfile?.display_full_name?.split(' ')[0] || user?.full_name?.split(' ')[0] || user?.email;
 
   const clientOrganizationId = user?.organization_id;
 
