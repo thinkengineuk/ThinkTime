@@ -80,7 +80,8 @@ export default function Clients() {
   // Group users by type
   const admins = filteredUsers.filter(u => u.user_type === 'super_admin' || u.user_type === 'admin' || u.role === 'admin');
   const engineers = filteredUsers.filter(u => u.user_type === 'agent' && u.role !== 'admin');
-  const clients = filteredUsers.filter(u => (!u.user_type || u.user_type === 'client') && u.role !== 'admin');
+  const clients = filteredUsers.filter(u => u.user_type === 'client' && u.role !== 'admin');
+  const unassigned = filteredUsers.filter(u => !u.user_type && u.role !== 'admin');
 
   const handleUpdateUserType = (userId, newUserType) => {
     const user = mergedUsers.find(u => u.id === userId);
