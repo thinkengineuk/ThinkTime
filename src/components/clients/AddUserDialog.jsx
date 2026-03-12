@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,13 +8,34 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 
-export default function AddUserDialog({ open, onOpenChange, organizations, onAdd, isSaving }) {
+export default function AddUserDialog({ open, onOpenChange, organizations, onAdd, isSaving, existingProfileEmails = [] }) {
   const [form, setForm] = useState({
     full_name: "",
     email: "",
     user_type: "client",
     organization_id: ""
   });
+
+  // Fetch all Base44 users
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ["allBase44Users"],
+    queryFn: () => base44.entities.User.list(),
+    enabled: open
+  });
+
+  // Users without a UserProfile yet
+  const unassignedUsers = allUsers.filter(u => !existingProfileEmails.includes(u.email));
+
+  const handleSelectUser = (userId) => {
+    const user = allUsers.find(u => u.id === userId);
+    if (user) {
+      setForm(f => ({
+        ...f,
+        email: user.email,
+        full_name: user.full_name || ""
+      }));
+    }
+  };
 
   const handleSubmit = () => {
     if (!form.email || !form.full_name) return;
@@ -27,6 +50,24 @@ export default function AddUserDialog({ open, onOpenChange, organizations, onAdd
           <DialogTitle>Add User Profile</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
+          {unassignedUsers.length > 0 && (
+            <div className="space-y-1">
+              <Label>Select Existing User</Label>
+              <Select onValueChange={handleSelectUser}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pick a user to pre-fill…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {unassignedUsers.map(u => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.full_name ? `${u.full_name} (${u.email})` : u.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-400">Only users without a profile are listed.</p>
+            </div>
+          )}
           <div className="space-y-1">
             <Label>Full Name *</Label>
             <Input
