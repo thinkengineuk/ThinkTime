@@ -542,6 +542,14 @@ export default function Clients() {
           </div>
         )}
 
+        <AddUserDialog
+          open={addUserOpen}
+          onOpenChange={setAddUserOpen}
+          organizations={organizations}
+          onAdd={(form) => addUserMutation.mutate(form)}
+          isSaving={addUserMutation.isPending}
+        />
+
         <EditUserDialog
           open={!!editingUser}
           onOpenChange={(open) => !open && setEditingUser(null)}
