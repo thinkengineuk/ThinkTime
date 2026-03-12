@@ -548,6 +548,7 @@ export default function Clients() {
           organizations={organizations}
           onAdd={(form) => addUserMutation.mutate(form)}
           isSaving={addUserMutation.isPending}
+          existingProfileEmails={userProfiles.map(p => p.email)}
         />
 
         <EditUserDialog
