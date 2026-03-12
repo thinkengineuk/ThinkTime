@@ -44,7 +44,7 @@ export default function AddUserDialog({ open, onOpenChange, organizations, onAdd
   const handleSubmit = () => {
     if (!form.email || !form.full_name) return;
     onAdd(form);
-    setForm({ full_name: "", email: "", user_type: "client", organization_id: "" });
+    setForm({ full_name: "", display_full_name: "", email: "", user_type: "client", organization_id: "", user_id: "" });
   };
 
   return (
