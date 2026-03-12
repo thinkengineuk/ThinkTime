@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
 
     const userProfiles = await base44.asServiceRole.entities.UserProfile.list();
     const adminEmails = userProfiles
-      .filter(u => u.user_type === 'super_admin' || u.user_type === 'agent')
+      .filter(u => u.user_type === 'super_admin' || u.user_type === 'agent' || u.user_type === 'admin')
       .map(u => u.email);
 
     let recipientEmails = [...adminEmails];
