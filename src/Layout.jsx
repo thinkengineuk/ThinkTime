@@ -52,7 +52,7 @@ export default function Layout({ children, currentPageName }) {
     ? userProfiles.find(p => p.user_id === user?.id) 
     : clientUserProfile;
     
-  const displayName = (effectiveUserProfile?.display_full_name || user?.full_name || user?.email)?.split(' ')[0];
+  const displayName = effectiveUserProfile?.display_full_name?.split(' ')[0] || user?.full_name?.split(' ')[0] || user?.email;
 
   const { data: organizations = [] } = useQuery({
     queryKey: ["organizations"],
