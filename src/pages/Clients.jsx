@@ -157,6 +157,7 @@ export default function Clients() {
       organization_name: org?.name,
       full_name: formData.full_name,
       display_full_name: formData.display_full_name,
+      company_name: formData.company_name,
       profile_id: user?.profile_id
     });
   };
