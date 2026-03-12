@@ -15,6 +15,7 @@ export default function Clients() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [editingUser, setEditingUser] = useState(null);
+  const [addUserOpen, setAddUserOpen] = useState(false);
 
   const { data: userProfiles = [], isLoading: isLoadingProfiles } = useQuery({
     queryKey: ["userProfiles"],
