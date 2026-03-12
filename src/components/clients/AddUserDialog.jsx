@@ -128,7 +128,7 @@ export default function AddUserDialog({ open, onOpenChange, organizations, onAdd
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
             onClick={handleSubmit}
-            disabled={isSaving || !form.email || !form.full_name}
+            disabled={isSaving || !form.email || !form.display_full_name}
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             Add User
