@@ -72,10 +72,15 @@ export default function Layout({ children, currentPageName }) {
       
       try {
         await base44.auth.updateMe({ has_logged_in_before: true });
-        await base44.functions.invoke('sendInviteAcceptedNotification', {
-          event: { type: 'update' },
-          data: { email: user.email, full_name: user.full_name }
-        });
+        await Promise.all([
+          base44.functions.invoke('sendInviteAcceptedNotification', {
+            event: { type: 'update' },
+            data: { email: user.email, full_name: user.full_name }
+          }),
+          base44.functions.invoke('syncUserProfileOnCreate', {
+            data: { id: user.id, email: user.email, full_name: user.full_name, user_type: 'client', organization_id: user.organization_id || null }
+          })
+        ]);
       } catch (error) {
         console.error("Error notifying first login:", error);
       }
