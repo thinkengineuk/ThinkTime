@@ -92,15 +92,15 @@ export default function CommentThread({ comments, currentUserEmail, isAdmin, onC
     setSaving(true);
     try {
       const now = new Date().toISOString();
-      await base44.entities.Comment.update(comment.id, {
-        body: editBody,
-        notification_scheduled_at: now,
-        notification_sent: false
-      });
+      const updateData = { body: editBody };
+      if (!isAdmin) {
+        updateData.notification_scheduled_at = now;
+        updateData.notification_sent = false;
+      }
+      await base44.entities.Comment.update(comment.id, updateData);
       setEditingId(null);
       setEditBody("");
-      // Restart the 30s notification timer only now that the user has confirmed their edit
-      if (onCommentUpdated) onCommentUpdated(comment.id, editBody, now);
+      if (!isAdmin && onCommentUpdated) onCommentUpdated(comment.id, editBody, now);
       toast.success("Comment updated");
     } catch (e) {
       toast.error("Failed to update comment");
