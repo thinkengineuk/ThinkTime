@@ -145,6 +145,11 @@ export default function Clients() {
       profile_id: user.profile_id,
       status: user.status
     });
+    // Also sync the User entity's organization_id so the client portal works
+    base44.functions.invoke('assignUserToOrganization', {
+      user_id: userId,
+      organization_id: orgId
+    }).catch(err => console.error("Failed to sync user organization:", err));
   };
 
   const getUserTypeLabel = (type) => {
