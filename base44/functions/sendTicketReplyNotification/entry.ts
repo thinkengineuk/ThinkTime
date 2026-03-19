@@ -128,11 +128,18 @@ Deno.serve(async (req) => {
     }
 
     // --- Email to admins/agents/watchers ---
-    const allUsers = await base44.asServiceRole.entities.User.list();
+    const userProfiles = await base44.asServiceRole.entities.UserProfile.list();
+    const ticketOrgId = ticket?.organization_id;
     const recipientEmails = new Set();
 
-    allUsers.forEach(u => {
-      if ((u.role === 'admin' || u.user_type === 'super_admin') && u.email !== user.email && u.email !== client_email) {
+    userProfiles.forEach(u => {
+      if (u.email === user.email || u.email === client_email) return;
+      // super_admins get all notifications
+      if (u.user_type === 'super_admin') {
+        recipientEmails.add(u.email);
+      }
+      // agents/admins only get notified for tickets in their organization
+      if ((u.user_type === 'agent' || u.user_type === 'admin') && ticketOrgId && u.organization_id === ticketOrgId) {
         recipientEmails.add(u.email);
       }
     });
