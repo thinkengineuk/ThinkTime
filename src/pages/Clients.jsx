@@ -127,7 +127,8 @@ export default function Clients() {
       organization_id: user.organization_id,
       display_full_name: user.display_full_name,
       full_name: user.full_name,
-      profile_id: user.profile_id
+      profile_id: user.profile_id,
+      status: user.status
     });
   };
 
@@ -141,7 +142,8 @@ export default function Clients() {
       organization_name: org?.name,
       display_full_name: user.display_full_name,
       full_name: user.full_name,
-      profile_id: user.profile_id
+      profile_id: user.profile_id,
+      status: user.status
     });
   };
 
