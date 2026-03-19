@@ -17,9 +17,10 @@ Deno.serve(async (req) => {
       return Response.json({ skipped: true, reason: 'Not a pending client user' });
     }
 
-    // Get all admins to notify
-    const allProfiles = await base44.asServiceRole.entities.UserProfile.list();
-    const admins = allProfiles.filter(p => p.user_type === 'super_admin' || p.user_type === 'admin');
+    // Get all admins to notify - filter directly to avoid fetching all profiles
+    const superAdmins = await base44.asServiceRole.entities.UserProfile.filter({ user_type: 'super_admin' });
+    const adminProfiles = await base44.asServiceRole.entities.UserProfile.filter({ user_type: 'admin' });
+    const admins = [...superAdmins, ...adminProfiles];
 
     if (admins.length === 0) {
       return Response.json({ success: true, notified: 0 });
