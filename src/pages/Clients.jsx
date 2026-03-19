@@ -222,6 +222,92 @@ export default function Clients() {
           </Card>
         ) : (
           <div className="space-y-8">
+            {/* Pending Requests Section */}
+            {pendingUsers.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <Badge className="bg-amber-500/10 text-amber-600 flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> Pending Requests
+                  </Badge>
+                  <span className="text-sm text-slate-500 font-normal">({pendingUsers.length})</span>
+                </h2>
+                <Card className="bg-amber-50/50 backdrop-blur-sm border-amber-200/60 shadow-sm">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Organisation</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingUsers.map((user) => (
+                        <TableRow key={user.id} className="bg-amber-50/80">
+                          <TableCell className="font-medium">{user.display_full_name || user.full_name || "-"}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{user.company_name || "-"}</TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.organization_id || ""}
+                              onValueChange={(value) => handleUpdateOrganization(user.id, value)}
+                              disabled={updateUserMutation.isPending}
+                            >
+                              <SelectTrigger className="w-40">
+                                <SelectValue placeholder="Assign org" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {organizations.map(org => (
+                                  <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.user_type || "client"}
+                              onValueChange={(value) => handleUpdateUserType(user.id, value)}
+                              disabled={updateUserMutation.isPending}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="client">Client</SelectItem>
+                                <SelectItem value="agent">Engineer</SelectItem>
+                                <SelectItem value="super_admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleApproveUser(user.id)}
+                                disabled={updateUserMutation.isPending}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 text-xs px-3 flex items-center gap-1"
+                              >
+                                <CheckCircle className="w-3.5 h-3.5" /> Approve
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingUser(user)}
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Card>
+              </div>
+            )}
+
             {/* Admins Section */}
             {admins.length > 0 && (
               <div>
