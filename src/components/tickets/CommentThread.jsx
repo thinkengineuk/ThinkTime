@@ -68,6 +68,7 @@ export default function CommentThread({ comments, currentUserEmail, isAdmin, onC
   };
 
   const canEdit = (comment) => {
+    if (isAdmin) return true;
     return comment.author_email === currentUserEmail && isInEditWindow(comment);
   };
 
