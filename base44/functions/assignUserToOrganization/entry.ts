@@ -1,25 +1,33 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { data: userData } = await req.json();
+    const payload = await req.json();
 
-    // Only process if user doesn't have an organization_id
-    if (userData.organization_id) {
-      return Response.json({ 
-        message: "User already has organization", 
-        updated: false 
+    // Support direct assignment: { user_id, organization_id }
+    if (payload.user_id && payload.organization_id) {
+      await base44.asServiceRole.entities.User.update(payload.user_id, {
+        organization_id: payload.organization_id
       });
+      return Response.json({ message: "User assigned to organization", updated: true });
     }
 
-    // Extract domain from email
+    // Legacy: domain-based matching
+    const { data: userData } = payload;
+    if (!userData) {
+      return Response.json({ error: "No user data provided" }, { status: 400 });
+    }
+
+    if (userData.organization_id) {
+      return Response.json({ message: "User already has organization", updated: false });
+    }
+
     const emailDomain = userData.email.split('@')[1];
     if (!emailDomain) {
       return Response.json({ error: "Invalid email format" }, { status: 400 });
     }
 
-    // Find organization matching this domain
     const organizations = await base44.asServiceRole.entities.Organization.list();
     const matchingOrg = organizations.find(org => org.domain === emailDomain);
 
@@ -31,12 +39,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Update user with organization_id
     await base44.asServiceRole.entities.User.update(userData.id, {
       organization_id: matchingOrg.id
     });
-
-    console.log(`✅ Assigned user ${userData.email} to organization ${matchingOrg.name}`);
 
     return Response.json({ 
       message: "User assigned to organization",
