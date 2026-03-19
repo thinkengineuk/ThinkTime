@@ -97,11 +97,26 @@ export default function Clients() {
     user.company_name?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleApproveUser = (userId) => {
+    const user = mergedUsers.find(u => u.id === userId);
+    updateUserMutation.mutate({
+      userId,
+      user_type: user.user_type || 'client',
+      organization_id: user.organization_id,
+      display_full_name: user.display_full_name,
+      full_name: user.full_name,
+      company_name: user.company_name,
+      profile_id: user.profile_id,
+      status: 'approved'
+    });
+  };
+
   // Group users by type
-  const admins = filteredUsers.filter(u => u.user_type === 'super_admin' || u.user_type === 'admin' || u.role === 'admin');
-  const engineers = filteredUsers.filter(u => u.user_type === 'agent' && u.role !== 'admin');
-  const clients = filteredUsers.filter(u => u.user_type === 'client' && u.role !== 'admin');
-  const unassigned = filteredUsers.filter(u => !u.user_type && u.role !== 'admin');
+  const pendingUsers = filteredUsers.filter(u => u.status === 'pending');
+  const admins = filteredUsers.filter(u => u.status !== 'pending' && (u.user_type === 'super_admin' || u.user_type === 'admin' || u.role === 'admin'));
+  const engineers = filteredUsers.filter(u => u.status !== 'pending' && u.user_type === 'agent' && u.role !== 'admin');
+  const clients = filteredUsers.filter(u => u.status !== 'pending' && u.user_type === 'client' && u.role !== 'admin');
+  const unassigned = filteredUsers.filter(u => u.status !== 'pending' && !u.user_type && u.role !== 'admin');
 
   const handleUpdateUserType = (userId, newUserType) => {
     const user = mergedUsers.find(u => u.id === userId);
