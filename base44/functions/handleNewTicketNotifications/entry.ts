@@ -77,28 +77,16 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, message: 'Missing ticket data' });
     }
 
-    // Get all admins/agents/super_admins to notify
+    // Get all super_admins to notify (they always get all notifications)
     const userProfiles = await base44.asServiceRole.entities.UserProfile.list();
 
-    // Get the ticket's organization_id to scope notifications correctly
-    const ticket = await base44.asServiceRole.entities.Ticket.get(ticketId);
-    const ticketOrgId = ticket?.organization_id || ticketData.organization_id;
-
-    const adminAgentEmails = userProfiles
-      .filter(u => {
-        // super_admins get all notifications regardless of org
-        if (u.user_type === 'super_admin') return true;
-        // agents and admins only get notified for tickets in their organization
-        if (u.user_type === 'agent' || u.user_type === 'admin') {
-          return ticketOrgId && u.organization_id === ticketOrgId;
-        }
-        return false;
-      })
+    const superAdminEmails = userProfiles
+      .filter(u => u.user_type === 'super_admin')
       .map(u => u.email)
       .filter(Boolean);
 
-    // Build unique recipient list (admins + assigned agent)
-    const recipientSet = new Set(adminAgentEmails);
+    // Build unique recipient list: super_admins + assigned agent only
+    const recipientSet = new Set(superAdminEmails);
     if (assigned_agent_email) recipientSet.add(assigned_agent_email);
     const allRecipients = Array.from(recipientSet);
 

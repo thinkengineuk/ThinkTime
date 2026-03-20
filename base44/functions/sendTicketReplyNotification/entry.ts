@@ -127,27 +127,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    // --- Email to admins/agents/watchers ---
+    // --- Email to super_admins + assigned agent + watchers ---
     const userProfiles = await base44.asServiceRole.entities.UserProfile.list();
-    const ticketOrgId = ticket?.organization_id;
     const recipientEmails = new Set();
 
+    // Always notify super_admins
     userProfiles.forEach(u => {
-      if (u.email === user.email || u.email === client_email) return;
-      // super_admins get all notifications
-      if (u.user_type === 'super_admin') {
-        recipientEmails.add(u.email);
-      }
-      // agents/admins only get notified for tickets in their organization
-      if ((u.user_type === 'agent' || u.user_type === 'admin') && ticketOrgId && u.organization_id === ticketOrgId) {
+      if (u.user_type === 'super_admin' && u.email !== user.email && u.email !== client_email) {
         recipientEmails.add(u.email);
       }
     });
 
+    // Notify assigned agent (if not the sender or client)
     if (ticket?.assigned_agent_email && ticket.assigned_agent_email !== user.email && ticket.assigned_agent_email !== client_email) {
       recipientEmails.add(ticket.assigned_agent_email);
     }
 
+    // Notify watchers (if not the sender or client)
     if (ticket?.watchers) {
       ticket.watchers.forEach(w => {
         if (w.email !== user.email && w.email !== client_email) recipientEmails.add(w.email);
