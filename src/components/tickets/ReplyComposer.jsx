@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Send, Lock, Loader2, AtSign, Clock } from "lucide-react";
+import { Send, Lock, Loader2, AtSign, Clock, X } from "lucide-react";
 import AttachmentUploader from "./AttachmentUploader";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -19,6 +19,8 @@ export default function ReplyComposer({
   const [attachments, setAttachments] = useState([]);
   const [detectedNames, setDetectedNames] = useState([]);
   const [showMentionPrompt, setShowMentionPrompt] = useState(false);
+  const [sendingCountdown, setSendingCountdown] = useState(0);
+  const countdownRef = useRef(null);
 
   // Detect names in the text
   useEffect(() => {
@@ -68,7 +70,26 @@ export default function ReplyComposer({
     setShowMentionPrompt(false);
     setDetectedNames([]);
     setLoading(false);
+
+    // Show 30-second countdown for non-internal comments
+    if (!isInternal) {
+      setSendingCountdown(30);
+      if (countdownRef.current) clearInterval(countdownRef.current);
+      countdownRef.current = setInterval(() => {
+        setSendingCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
   };
+
+  useEffect(() => {
+    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
+  }, []);
 
   if (ticketStatus === "closed") {
     return (
@@ -88,6 +109,21 @@ export default function ReplyComposer({
           </AlertDescription>
         </Alert>
       )}
+      {sendingCountdown > 0 && (
+        <Alert className="mb-3 bg-emerald-50 border-emerald-200">
+          <Clock className="h-4 w-4 text-emerald-600" />
+          <AlertDescription className="flex items-center justify-between">
+            <span className="text-sm text-emerald-900">
+              Reply sent. Email notification will be delivered in{" "}
+              <strong>{sendingCountdown}s</strong> — edit or delete your message before then to cancel it.
+            </span>
+            <button onClick={() => { setSendingCountdown(0); clearInterval(countdownRef.current); }} className="ml-2 text-emerald-600 hover:text-emerald-800">
+              <X className="w-4 h-4" />
+            </button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {showMentionPrompt && detectedNames.length > 0 && (
         <Alert className="mb-3 bg-blue-50 border-blue-200">
           <AtSign className="h-4 w-4 text-blue-600" />
