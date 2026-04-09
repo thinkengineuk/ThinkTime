@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 function emailTemplate({ preheader, headerLabel, title, bodyHtml }) {
   return `<!DOCTYPE html>
@@ -97,18 +97,27 @@ Deno.serve(async (req) => {
       </div>
     ` : '';
 
-    const allUsers = await base44.asServiceRole.entities.User.list();
+    const userProfiles = await base44.asServiceRole.entities.UserProfile.list();
 
-    let primaryRecipients = [];
-    if (ticket.assigned_agent_email) {
-      primaryRecipients.push(ticket.assigned_agent_email);
-    } else {
-      const superAdmins = allUsers.filter(u => u.user_type === 'super_admin');
-      primaryRecipients.push(...superAdmins.map(u => u.email));
-    }
+    // Always notify all super_admins
+    const superAdminEmails = userProfiles
+      .filter(u => u.user_type === 'super_admin')
+      .map(u => u.email)
+      .filter(Boolean);
 
-    const watcherEmails = ticket.watchers ? ticket.watchers.map(w => w.email) : [];
-    const uniqueEmails = [...new Set([...primaryRecipients, ...watcherEmails])];
+    const recipientSet = new Set(superAdminEmails);
+
+    // Always notify assigned agent
+    if (ticket.assigned_agent_email) recipientSet.add(ticket.assigned_agent_email);
+
+    // Always notify watchers
+    if (ticket.watchers) ticket.watchers.forEach(w => { if (w.email) recipientSet.add(w.email); });
+
+    // Never email the client (they are the sender)
+    recipientSet.delete(user.email);
+    if (ticket.client_email) recipientSet.delete(ticket.client_email);
+
+    const uniqueEmails = Array.from(recipientSet);
 
     if (uniqueEmails.length === 0) {
       return Response.json({ success: false, message: 'No recipients' });

@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 const priorityColor = (p) => p === 'urgent' ? '#dc2626' : p === 'high' ? '#ea580c' : p === 'medium' ? '#d97706' : '#64748b';
 
@@ -53,11 +53,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // This function is called by an entity automation (no user auth needed)
-    // Use service role throughout
     const body = await req.json();
-
-    // Support both direct call and automation payload
     const ticketData = body.data || body;
 
     const {
@@ -70,24 +66,32 @@ Deno.serve(async (req) => {
       client_name,
       client_email,
       assigned_agent_email,
-      assigned_agent_name
+      assigned_agent_name,
+      watchers
     } = ticketData;
 
     if (!displayId || !subject) {
       return Response.json({ success: false, message: 'Missing ticket data' });
     }
 
-    // Get all super_admins to notify (they always get all notifications)
     const userProfiles = await base44.asServiceRole.entities.UserProfile.list();
 
+    // Always notify all super_admins
     const superAdminEmails = userProfiles
       .filter(u => u.user_type === 'super_admin')
       .map(u => u.email)
       .filter(Boolean);
 
-    // Build unique recipient list: super_admins + assigned agent only
+    // Build unique recipient list: super_admins + assigned agent + watchers
     const recipientSet = new Set(superAdminEmails);
     if (assigned_agent_email) recipientSet.add(assigned_agent_email);
+    if (watchers && Array.isArray(watchers)) {
+      watchers.forEach(w => { if (w.email) recipientSet.add(w.email); });
+    }
+
+    // Never email the client (they get a separate confirmation)
+    if (client_email) recipientSet.delete(client_email);
+
     const allRecipients = Array.from(recipientSet);
 
     if (allRecipients.length === 0) {
@@ -117,30 +121,27 @@ Deno.serve(async (req) => {
       <a href="https://thinktime.support" style="display:inline-block;background:linear-gradient(90deg,#0ea5e9,#1e3a8a);color:#ffffff;text-decoration:none;padding:11px 22px;border-radius:7px;font-size:14px;font-weight:600;">View Ticket →</a>
     `;
 
-    // Send "new ticket" notification to all admins/agents
-    const newTicketHtml = emailTemplate({
-      preheader: `New ticket ${displayId}: ${subject}`,
-      headerLabel: 'New Support Ticket',
-      title: subject,
-      bodyHtml: `<p style="margin:0 0 20px 0;font-size:14px;color:#475569;">A new support ticket has been submitted and requires your attention.</p>${metaTable}`
-    });
-
-    // Send to all recipients
     const emailPromises = allRecipients.map(email => {
-      // Personalise for the assigned agent
-      let html = newTicketHtml;
-      let emailSubject = `[${displayId}] New Ticket: ${subject}`;
+      let html;
+      let emailSubject;
 
       if (email === assigned_agent_email && assigned_agent_name) {
         const firstName = assigned_agent_name.split(' ')[0];
-        const assignedHtml = emailTemplate({
+        html = emailTemplate({
           preheader: `Ticket ${displayId} assigned to you: ${subject}`,
           headerLabel: 'Assigned to You',
           title: subject,
           bodyHtml: `<p style="margin:0 0 20px 0;font-size:14px;color:#475569;">Hi ${firstName}, a new ticket has been assigned to you.</p>${metaTable}`
         });
-        html = assignedHtml;
         emailSubject = `[${displayId}] Assigned: ${subject}`;
+      } else {
+        html = emailTemplate({
+          preheader: `New ticket ${displayId}: ${subject}`,
+          headerLabel: 'New Support Ticket',
+          title: subject,
+          bodyHtml: `<p style="margin:0 0 20px 0;font-size:14px;color:#475569;">A new support ticket has been submitted and requires your attention.</p>${metaTable}`
+        });
+        emailSubject = `[${displayId}] New Ticket: ${subject}`;
       }
 
       return base44.asServiceRole.integrations.Core.SendEmail({
