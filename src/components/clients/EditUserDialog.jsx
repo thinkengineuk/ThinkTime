@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -31,9 +32,15 @@ export default function EditUserDialog({
     display_full_name: "",
     company_name: "",
     organization_id: "",
-    user_type: "client"
+    user_type: "client",
+    service_types: ["tech"]
   });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const isCogsOrg = (orgId) => {
+    const org = organizations?.find(o => o.id === orgId);
+    return org?.name?.toLowerCase().includes("cogs");
+  };
 
   useEffect(() => {
     if (user) {
@@ -42,10 +49,26 @@ export default function EditUserDialog({
         display_full_name: user.display_full_name || user.full_name || "",
         company_name: user.company_name || "",
         organization_id: user.organization_id || "",
-        user_type: user.user_type || "client"
+        user_type: user.user_type || "client",
+        service_types: user.service_types?.length ? user.service_types : ["tech"]
       });
     }
   }, [user]);
+
+  // When org changes to Cogs, force tech only
+  useEffect(() => {
+    if (isCogsOrg(formData.organization_id)) {
+      setFormData(prev => ({ ...prev, service_types: ["tech"] }));
+    }
+  }, [formData.organization_id]);
+
+  const toggleServiceType = (type) => {
+    const current = formData.service_types || [];
+    const updated = current.includes(type)
+      ? current.filter(t => t !== type)
+      : [...current, type];
+    setFormData({ ...formData, service_types: updated });
+  };
 
   const handleSave = () => {
     onSave(user.id, formData);
@@ -135,6 +158,37 @@ export default function EditUserDialog({
                 </SelectContent>
               </Select>
             </div>
+
+            {formData.user_type === "client" && (
+              <div className="space-y-2">
+                <Label>Service Type</Label>
+                {isCogsOrg(formData.organization_id) ? (
+                  <div className="flex items-center gap-2 py-2">
+                    <Checkbox checked disabled id="cogs-tech" />
+                    <label htmlFor="cogs-tech" className="text-sm text-slate-600">Tech (Cogs AI clients are always Tech only)</label>
+                  </div>
+                ) : (
+                  <div className="flex gap-6 py-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="service-tech"
+                        checked={(formData.service_types || []).includes("tech")}
+                        onCheckedChange={() => toggleServiceType("tech")}
+                      />
+                      <label htmlFor="service-tech" className="text-sm text-slate-700 cursor-pointer">Tech</label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="service-marketing"
+                        checked={(formData.service_types || []).includes("marketing")}
+                        onCheckedChange={() => toggleServiceType("marketing")}
+                      />
+                      <label htmlFor="service-marketing" className="text-sm text-slate-700 cursor-pointer">Marketing</label>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <DialogFooter className="flex justify-between">

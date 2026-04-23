@@ -1,0 +1,148 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID of the corresponding User entity"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "User's email"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "User's full name"
+    },
+    "display_full_name": {
+      "type": "string",
+      "description": "Editable display name for the user"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "User's company name"
+    },
+    "user_type": {
+      "type": "string",
+      "enum": [
+        "agent",
+        "super_admin",
+        "admin",
+        "client"
+      ],
+      "description": "User's role or type"
+    },
+    "organization_id": {
+      "type": "string",
+      "description": "ID of the user's organization"
+    },
+    "service_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "marketing",
+          "tech"
+        ]
+      },
+      "default": [
+        "tech"
+      ],
+      "description": "Types of services the client receives (marketing, tech, or both)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved"
+      ],
+      "default": "pending",
+      "description": "Approval status of the user profile"
+    }
+  },
+  "required": [
+    "user_id",
+    "email",
+    "full_name",
+    "user_type"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "user_type": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "data.organization_id": "{{user.organization_id}}",
+          "user_condition": {
+            "user_type": {
+              "$in": [
+                "agent",
+                "super_admin"
+              ]
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "user_type": {
+              "$in": [
+                "super_admin"
+              ]
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "user_type": {
+              "$in": [
+                "super_admin"
+              ]
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
