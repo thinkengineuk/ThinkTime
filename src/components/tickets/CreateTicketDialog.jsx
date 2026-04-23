@@ -72,7 +72,9 @@ export default function CreateTicketDialog({
     ? false 
     : clientMode === "new" 
       ? true  // new clients: allow selection, validate after
-      : (selectedClientProfile?.service_types || []).includes("marketing");
+      : !form.client_email  // no client selected yet: allow
+        ? true
+        : (selectedClientProfile?.service_types || ["tech"]).includes("marketing");
 
   const handleClientSelect = (email) => {
     const selectedClient = clientUsers.find(u => u.email === email);
@@ -173,10 +175,16 @@ export default function CreateTicketDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="tech">Tech</SelectItem>
-                  {!isCogsOrg && (
-                    <SelectItem value="marketing" disabled={!clientAllowsMarketing && clientMode === "existing" && !!form.client_email}>
-                      Marketing{!clientAllowsMarketing && clientMode === "existing" && form.client_email ? " (not available for selected client)" : ""}
+                  {!isCogsOrg && clientAllowsMarketing && (
+                    <SelectItem value="marketing">Marketing</SelectItem>
+                  )}
+                  {!isCogsOrg && !clientAllowsMarketing && form.client_email && (
+                    <SelectItem value="marketing" disabled>
+                      Marketing (not available for selected client)
                     </SelectItem>
+                  )}
+                  {!isCogsOrg && !form.client_email && (
+                    <SelectItem value="marketing">Marketing</SelectItem>
                   )}
                 </SelectContent>
               </Select>
