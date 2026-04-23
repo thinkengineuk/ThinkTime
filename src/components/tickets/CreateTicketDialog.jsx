@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import AttachmentUploader from "./AttachmentUploader";
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -23,6 +23,7 @@ export default function CreateTicketDialog({
   const [loading, setLoading] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [clientMode, setClientMode] = useState("existing");
+  const [validationError, setValidationError] = useState("");
   const [form, setForm] = useState({
     subject: "",
     description: "",
@@ -58,14 +59,64 @@ export default function CreateTicketDialog({
   const clientUsers = allUsers.filter(user => !user.user_type || user.user_type === "client");
   const agentUsers = allUsers.filter(user => user.user_type === "agent" || user.user_type === "super_admin");
 
+  // Get the selected client's profile to check their service_types
+  const selectedClientProfile = clientMode === "existing" 
+    ? clientUsers.find(u => u.email === form.client_email) 
+    : null;
+
+  const selectedOrg = organizations?.find(o => o.id === form.organization_id);
+  const isCogsOrg = selectedOrg?.name?.toLowerCase().includes("cogs");
+
+  // Determine if marketing is allowed for the selected client
+  const clientAllowsMarketing = isCogsOrg 
+    ? false 
+    : clientMode === "new" 
+      ? true  // new clients: allow selection, validate after
+      : (selectedClientProfile?.service_types || []).includes("marketing");
+
+  const handleClientSelect = (email) => {
+    const selectedClient = clientUsers.find(u => u.email === email);
+    const clientServiceTypes = selectedClient?.service_types || ["tech"];
+    // If current request_type is marketing but client doesn't support it, reset to tech
+    const newRequestType = form.request_type === "marketing" && !clientServiceTypes.includes("marketing")
+      ? "tech"
+      : form.request_type;
+    setValidationError("");
+    setForm({
+      ...form,
+      client_email: email,
+      client_name: selectedClient ? (selectedClient.display_full_name || selectedClient.full_name) : "",
+      request_type: newRequestType
+    });
+  };
+
+  const handleRequestTypeChange = (v) => {
+    setValidationError("");
+    if (v === "marketing" && !clientAllowsMarketing && clientMode === "existing" && form.client_email) {
+      const clientName = selectedClientProfile?.display_full_name || selectedClientProfile?.full_name || form.client_email;
+      setValidationError(`${clientName} does not have marketing services. Please select Tech or choose a different client.`);
+      return;
+    }
+    setForm({ ...form, request_type: v });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate client service type before submitting
+    if (!isClient && clientMode === "existing" && form.client_email && selectedClientProfile) {
+      const clientServiceTypes = selectedClientProfile.service_types || ["tech"];
+      if (!clientServiceTypes.includes(form.request_type)) {
+        const clientName = selectedClientProfile.display_full_name || selectedClientProfile.full_name || form.client_email;
+        setValidationError(`${clientName} does not receive ${form.request_type} services. Please change the request type or select a different client.`);
+        return;
+      }
+    }
+
     setLoading(true);
-    // If Cogs org, force request_type to tech
-    const selectedOrg = organizations?.find(o => o.id === form.organization_id);
-    const isCogsOrg = selectedOrg?.name?.toLowerCase().includes("cogs");
     await onSubmit({ ...form, request_type: isCogsOrg ? "tech" : form.request_type, attachments });
     setLoading(false);
+    setValidationError("");
     setForm({
       subject: "",
       description: "",
@@ -112,32 +163,26 @@ export default function CreateTicketDialog({
           {!isClient && form.organization_id && (
             <div className="space-y-2">
               <Label>Request Type</Label>
-              {(() => {
-                const selectedOrg = organizations?.find(o => o.id === form.organization_id);
-                const isCogsOrg = selectedOrg?.name?.toLowerCase().includes("cogs");
-                return (
-                  <Select
-                    value={isCogsOrg ? "tech" : form.request_type}
-                    onValueChange={(v) => !isCogsOrg && setForm({ ...form, request_type: v })}
-                    disabled={isCogsOrg}
-                  >
-                    <SelectTrigger className={isCogsOrg ? "opacity-60" : ""}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="tech">Tech</SelectItem>
-                      {!isCogsOrg && <SelectItem value="marketing">Marketing</SelectItem>}
-                    </SelectContent>
-                  </Select>
-                );
-              })()}
-              {(() => {
-                const selectedOrg = organizations?.find(o => o.id === form.organization_id);
-                const isCogsOrg = selectedOrg?.name?.toLowerCase().includes("cogs");
-                return isCogsOrg ? (
-                  <p className="text-xs text-slate-500">Cogs AI tickets are always classified as Tech.</p>
-                ) : null;
-              })()}
+              <Select
+                value={isCogsOrg ? "tech" : form.request_type}
+                onValueChange={handleRequestTypeChange}
+                disabled={isCogsOrg}
+              >
+                <SelectTrigger className={isCogsOrg ? "opacity-60" : ""}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tech">Tech</SelectItem>
+                  {!isCogsOrg && (
+                    <SelectItem value="marketing" disabled={!clientAllowsMarketing && clientMode === "existing" && !!form.client_email}>
+                      Marketing{!clientAllowsMarketing && clientMode === "existing" && form.client_email ? " (not available for selected client)" : ""}
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              {isCogsOrg && (
+                <p className="text-xs text-slate-500">Cogs AI tickets are always classified as Tech.</p>
+              )}
             </div>
           )}
 
@@ -159,14 +204,7 @@ export default function CreateTicketDialog({
                 <Select
                   required
                   value={form.client_email}
-                  onValueChange={(email) => {
-                    const selectedClient = clientUsers.find(user => user.email === email);
-                    setForm({
-                      ...form,
-                      client_email: email,
-                      client_name: selectedClient ? (selectedClient.display_full_name || selectedClient.full_name) : ""
-                    });
-                  }}
+                  onValueChange={handleClientSelect}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select client" />
@@ -287,6 +325,13 @@ export default function CreateTicketDialog({
               onAttachmentsChange={setAttachments}
             />
           </div>
+
+          {validationError && (
+            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>{validationError}</span>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
