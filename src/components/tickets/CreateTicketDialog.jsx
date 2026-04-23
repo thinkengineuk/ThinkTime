@@ -56,7 +56,11 @@ export default function CreateTicketDialog({
     return org ? ` (${org.name})` : '';
   };
 
-  const clientUsers = allUsers.filter(user => !user.user_type || user.user_type === "client");
+  const allClientUsers = allUsers.filter(user => !user.user_type || user.user_type === "client");
+  // Filter clients by selected org
+  const clientUsers = form.organization_id
+    ? allClientUsers.filter(u => u.organization_id === form.organization_id)
+    : allClientUsers;
   const agentUsers = allUsers.filter(user => user.user_type === "agent" || user.user_type === "super_admin");
 
   // Get the selected client's profile to check their service_types
@@ -143,12 +147,16 @@ export default function CreateTicketDialog({
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+          {/* 1. Organisation */}
           {!isClient && organizations?.length > 0 && (
             <div className="space-y-2">
               <Label>Organisation</Label>
               <Select 
                 value={form.organization_id} 
-                onValueChange={(v) => setForm({ ...form, organization_id: v })}
+                onValueChange={(v) => {
+                  // Reset client when org changes
+                  setForm({ ...form, organization_id: v, client_email: "", client_name: "" });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select organisation" />
@@ -162,6 +170,63 @@ export default function CreateTicketDialog({
             </div>
           )}
 
+          {/* 2. Client */}
+          {!isClient && form.organization_id && (
+            <div className="space-y-3">
+              <Label>Client *</Label>
+              <RadioGroup value={clientMode} onValueChange={setClientMode} className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="existing" id="existing" />
+                  <Label htmlFor="existing" className="font-normal cursor-pointer">Existing Client</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="new" id="new" />
+                  <Label htmlFor="new" className="font-normal cursor-pointer">New Client</Label>
+                </div>
+              </RadioGroup>
+
+              {clientMode === "existing" ? (
+                <Select
+                  required
+                  value={form.client_email}
+                  onValueChange={handleClientSelect}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clientUsers.length === 0 ? (
+                      <div className="px-2 py-3 text-sm text-slate-400 text-center">No clients for this organisation</div>
+                    ) : (
+                      clientUsers.map(client => (
+                        <SelectItem key={client.email} value={client.email}>
+                          {client.display_full_name || client.full_name} ({client.email})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="space-y-2">
+                  <Input
+                    required
+                    type="email"
+                    placeholder="Client email address"
+                    value={form.client_email}
+                    onChange={(e) => setForm({ ...form, client_email: e.target.value })}
+                  />
+                  <Input
+                    required
+                    placeholder="Client name"
+                    value={form.client_name}
+                    onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 3. Request Type */}
           {!isClient && form.organization_id && (
             <div className="space-y-2">
               <Label>Request Type</Label>
@@ -188,57 +253,7 @@ export default function CreateTicketDialog({
             </div>
           )}
 
-          {!isClient && (
-            <div className="space-y-3">
-              <Label>Client *</Label>
-              <RadioGroup value={clientMode} onValueChange={setClientMode} className="flex gap-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="existing" id="existing" />
-                  <Label htmlFor="existing" className="font-normal cursor-pointer">Existing Client</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="new" id="new" />
-                  <Label htmlFor="new" className="font-normal cursor-pointer">New Client</Label>
-                </div>
-              </RadioGroup>
-
-              {clientMode === "existing" ? (
-                <Select
-                  required
-                  value={form.client_email}
-                  onValueChange={handleClientSelect}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientUsers.map(client => (
-                      <SelectItem key={client.email} value={client.email}>
-                        {client.display_full_name || client.full_name} ({client.email}){getOrgName(client.organization_id)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="space-y-2">
-                  <Input
-                    required
-                    type="email"
-                    placeholder="Client email address"
-                    value={form.client_email}
-                    onChange={(e) => setForm({ ...form, client_email: e.target.value })}
-                  />
-                  <Input
-                    required
-                    placeholder="Client name"
-                    value={form.client_name}
-                    onChange={(e) => setForm({ ...form, client_name: e.target.value })}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
+          {/* 4. Assigned Engineer */}
           {!isClient && (
             <div className="space-y-2">
               <Label>Assigned Engineer</Label>
@@ -246,11 +261,11 @@ export default function CreateTicketDialog({
                 value={form.assigned_agent_email}
                 onValueChange={(email) => {
                   const selectedAgent = agentUsers.find(user => user.email === email);
-                   setForm({
-                     ...form,
-                     assigned_agent_email: email,
-                     assigned_agent_name: selectedAgent ? (selectedAgent.display_full_name || selectedAgent.full_name) : ""
-                   });
+                  setForm({
+                    ...form,
+                    assigned_agent_email: email,
+                    assigned_agent_name: selectedAgent ? (selectedAgent.display_full_name || selectedAgent.full_name) : ""
+                  });
                 }}
               >
                 <SelectTrigger>
@@ -260,7 +275,7 @@ export default function CreateTicketDialog({
                   <SelectItem value={null}>Auto-assign to Karl Abbott</SelectItem>
                   {agentUsers.map(agent => (
                     <SelectItem key={agent.email} value={agent.email}>
-                      {agent.display_full_name || agent.full_name} ({agent.email}){getOrgName(agent.organization_id)}
+                      {agent.display_full_name || agent.full_name} ({agent.email})
                     </SelectItem>
                   ))}
                 </SelectContent>
