@@ -175,16 +175,10 @@ export default function CreateTicketDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="tech">Tech</SelectItem>
-                  {!isCogsOrg && clientAllowsMarketing && (
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                  )}
-                  {!isCogsOrg && !clientAllowsMarketing && form.client_email && (
-                    <SelectItem value="marketing" disabled>
-                      Marketing (not available for selected client)
+                  {!isCogsOrg && (
+                    <SelectItem value="marketing" disabled={!clientAllowsMarketing}>
+                      Marketing{!clientAllowsMarketing && form.client_email ? " (not available for selected client)" : ""}
                     </SelectItem>
-                  )}
-                  {!isCogsOrg && !form.client_email && (
-                    <SelectItem value="marketing">Marketing</SelectItem>
                   )}
                 </SelectContent>
               </Select>
