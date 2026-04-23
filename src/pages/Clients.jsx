@@ -36,7 +36,7 @@ export default function Clients() {
   }));
 
   const updateUserMutation = useMutation({
-    mutationFn: async ({ userId, user_type, organization_id, organization_name, display_full_name, full_name, company_name, profile_id, status }) => {
+    mutationFn: async ({ userId, user_type, organization_id, organization_name, display_full_name, full_name, company_name, profile_id, status, service_types }) => {
       if (profile_id) {
         await base44.entities.UserProfile.update(profile_id, {
           user_type,
@@ -44,7 +44,8 @@ export default function Clients() {
           display_full_name,
           full_name,
           company_name,
-          ...(status !== undefined ? { status } : {})
+          ...(status !== undefined ? { status } : {}),
+          ...(service_types !== undefined ? { service_types } : {})
         });
       } else {
         await base44.entities.UserProfile.create({
@@ -181,6 +182,7 @@ export default function Clients() {
       full_name: formData.full_name,
       display_full_name: formData.display_full_name,
       company_name: formData.company_name,
+      service_types: formData.service_types,
       profile_id: user?.profile_id
     });
   };
