@@ -15,6 +15,7 @@ export default function TicketFilters({
       status: "all",
       priority: "all",
       organization: "all",
+      request_type: "all",
       search: ""
     });
   };
@@ -22,6 +23,7 @@ export default function TicketFilters({
   const hasActiveFilters = filters.status !== "all" || 
                            filters.priority !== "all" || 
                            filters.organization !== "all" ||
+                           filters.request_type !== "all" ||
                            filters.search;
 
   return (
@@ -59,6 +61,17 @@ export default function TicketFilters({
           <SelectItem value="high">High</SelectItem>
           <SelectItem value="medium">Medium</SelectItem>
           <SelectItem value="low">Low</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select value={filters.request_type} onValueChange={(v) => setFilters({ ...filters, request_type: v })}>
+        <SelectTrigger className="w-[160px] bg-slate-50 border-0">
+          <SelectValue placeholder="Request Type" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Types</SelectItem>
+          <SelectItem value="tech">Tech</SelectItem>
+          <SelectItem value="marketing">Marketing</SelectItem>
         </SelectContent>
       </Select>
 

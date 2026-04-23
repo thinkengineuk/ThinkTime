@@ -28,6 +28,7 @@ export default function CreateTicketDialog({
     description: "",
     priority: "medium",
     category: "general",
+    request_type: "tech",
     organization_id: defaultOrgId || "",
     client_email: clientEmail,
     client_name: "",
@@ -60,13 +61,17 @@ export default function CreateTicketDialog({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await onSubmit({ ...form, attachments });
+    // If Cogs org, force request_type to tech
+    const selectedOrg = organizations?.find(o => o.id === form.organization_id);
+    const isCogsOrg = selectedOrg?.name?.toLowerCase().includes("cogs");
+    await onSubmit({ ...form, request_type: isCogsOrg ? "tech" : form.request_type, attachments });
     setLoading(false);
     setForm({
       subject: "",
       description: "",
       priority: "medium",
       category: "general",
+      request_type: "tech",
       organization_id: defaultOrgId || "",
       client_email: clientEmail,
       client_name: "",
@@ -101,6 +106,38 @@ export default function CreateTicketDialog({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {!isClient && form.organization_id && (
+            <div className="space-y-2">
+              <Label>Request Type</Label>
+              {(() => {
+                const selectedOrg = organizations?.find(o => o.id === form.organization_id);
+                const isCogsOrg = selectedOrg?.name?.toLowerCase().includes("cogs");
+                return (
+                  <Select
+                    value={isCogsOrg ? "tech" : form.request_type}
+                    onValueChange={(v) => !isCogsOrg && setForm({ ...form, request_type: v })}
+                    disabled={isCogsOrg}
+                  >
+                    <SelectTrigger className={isCogsOrg ? "opacity-60" : ""}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tech">Tech</SelectItem>
+                      {!isCogsOrg && <SelectItem value="marketing">Marketing</SelectItem>}
+                    </SelectContent>
+                  </Select>
+                );
+              })()}
+              {(() => {
+                const selectedOrg = organizations?.find(o => o.id === form.organization_id);
+                const isCogsOrg = selectedOrg?.name?.toLowerCase().includes("cogs");
+                return isCogsOrg ? (
+                  <p className="text-xs text-slate-500">Cogs AI tickets are always classified as Tech.</p>
+                ) : null;
+              })()}
             </div>
           )}
 

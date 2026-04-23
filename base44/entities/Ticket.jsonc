@@ -1,0 +1,243 @@
+{
+  "name": "Ticket",
+  "type": "object",
+  "properties": {
+    "display_id": {
+      "type": "string",
+      "description": "Base44 encoded ticket ID (e.g., TE-4m9)"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Ticket subject line"
+    },
+    "description": {
+      "type": "string",
+      "description": "Initial ticket description"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "pending",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "technical",
+        "billing",
+        "general",
+        "feature_request",
+        "bug_report"
+      ],
+      "default": "general"
+    },
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "tech",
+        "marketing"
+      ],
+      "default": "tech",
+      "description": "Whether this is a tech or marketing request"
+    },
+    "organization_id": {
+      "type": "string",
+      "description": "ID of the organization (ThinkEngine or Cogs AI)"
+    },
+    "organization_prefix": {
+      "type": "string",
+      "description": "Organization prefix for quick filtering"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Client's email address"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client's display name"
+    },
+    "assigned_agent_email": {
+      "type": "string",
+      "description": "Assigned agent's email"
+    },
+    "assigned_agent_name": {
+      "type": "string",
+      "description": "Assigned agent's name"
+    },
+    "watchers": {
+      "type": "array",
+      "description": "Client users watching this ticket",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "last_activity": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of last activity"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "web",
+        "email"
+      ],
+      "default": "web"
+    },
+    "attachments": {
+      "type": "array",
+      "description": "Files and links attached to the ticket",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "file",
+              "link"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "subject",
+    "organization_id",
+    "client_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "data.organization_id": "{{user.organization_id}}",
+          "user_condition": {
+            "user_type": {
+              "$in": [
+                "agent",
+                "super_admin"
+              ]
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "data.watchers": {
+            "$elemMatch": {
+              "email": "{{user.email}}"
+            }
+          }
+        },
+        {
+          "data.assigned_agent_email": "{{user.email}}"
+        },
+        {
+          "data.organization_id": "{{user.organization_id}}",
+          "user_condition": {
+            "user_type": {
+              "$in": [
+                "agent",
+                "super_admin"
+              ]
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "data.assigned_agent_email": "{{user.email}}"
+        },
+        {
+          "data.organization_id": "{{user.organization_id}}",
+          "user_condition": {
+            "user_type": {
+              "$in": [
+                "agent",
+                "super_admin"
+              ]
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "user_type": {
+              "$in": [
+                "super_admin"
+              ]
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

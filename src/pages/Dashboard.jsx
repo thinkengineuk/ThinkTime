@@ -19,6 +19,7 @@ export default function Dashboard() {
     status: "all",
     priority: "all",
     organization: "all",
+    request_type: "all",
     search: ""
   });
 
@@ -123,6 +124,7 @@ export default function Dashboard() {
         description: formData.description,
         priority: formData.priority,
         category: formData.category,
+        request_type: formData.request_type || "tech",
         organization_id: formData.organization_id,
         client_email: formData.client_email,
         client_name: formData.client_name,
@@ -201,6 +203,7 @@ export default function Dashboard() {
         status: "all",
         priority: "all",
         organization: "all",
+        request_type: "all",
         search: ""
       });
       
@@ -221,6 +224,7 @@ export default function Dashboard() {
     if (filters.status !== "all" && ticket.status !== filters.status) return false;
     if (filters.priority !== "all" && ticket.priority !== filters.priority) return false;
     if (filters.organization !== "all" && ticket.organization_id !== filters.organization) return false;
+    if (filters.request_type !== "all" && ticket.request_type !== filters.request_type) return false;
     if (filters.search) {
       const search = filters.search.toLowerCase();
       const matches = 
