@@ -108,15 +108,21 @@ export default function Dashboard() {
         console.log(`✅ Created placeholder user for: ${formData.client_email}`);
       }
 
-      // Auto-assign to karla@thinkengine.co if no agent specified
+      // Auto-assign based on organisation
       let assignedAgentEmail = formData.assigned_agent_email || null;
       let assignedAgentName = formData.assigned_agent_name || null;
       
       if (!assignedAgentEmail || assignedAgentEmail === "") {
-        assignedAgentEmail = "karla@thinkengine.co";
-        const userProfiles = await base44.entities.UserProfile.list();
-        const karlaProfile = userProfiles.find(p => p.email === "karla@thinkengine.co");
-        assignedAgentName = karlaProfile?.display_full_name || karlaProfile?.full_name || "Karl Abbott";
+        const isCogsOrg = org.name?.toLowerCase().includes("cogs");
+        if (isCogsOrg) {
+          assignedAgentEmail = "support@cogsai.co.uk";
+          assignedAgentName = "Cogs Support";
+        } else {
+          assignedAgentEmail = "karla@thinkengine.co";
+          const userProfiles = await base44.entities.UserProfile.list();
+          const karlaProfile = userProfiles.find(p => p.email === "karla@thinkengine.co");
+          assignedAgentName = karlaProfile?.display_full_name || karlaProfile?.full_name || "Karl Abbott";
+        }
       }
 
       const ticketData = {
