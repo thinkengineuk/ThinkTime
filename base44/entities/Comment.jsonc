@@ -1,0 +1,82 @@
+{
+  "name": "Comment",
+  "type": "object",
+  "properties": {
+    "ticket_id": {
+      "type": "string",
+      "description": "ID of the parent ticket"
+    },
+    "ticket_display_id": {
+      "type": "string",
+      "description": "Display ID for reference"
+    },
+    "author_email": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_role": {
+      "type": "string",
+      "enum": [
+        "agent",
+        "client"
+      ],
+      "default": "client"
+    },
+    "body": {
+      "type": "string",
+      "description": "Comment content (supports HTML)"
+    },
+    "is_internal": {
+      "type": "boolean",
+      "default": false,
+      "description": "Internal notes not visible to clients"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "web",
+        "email"
+      ],
+      "default": "web"
+    },
+    "notification_scheduled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the notification was scheduled (set on comment create)"
+    },
+    "notification_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the delayed email notification has been sent"
+    },
+    "attachments": {
+      "type": "array",
+      "description": "Files and links attached to the comment",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "file",
+              "link"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "ticket_id",
+    "body",
+    "author_email"
+  ]
+}

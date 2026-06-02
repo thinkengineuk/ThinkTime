@@ -1,0 +1,110 @@
+{
+  "name": "Organization",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Organization name (ThinkEngine or Cogs AI)"
+    },
+    "prefix": {
+      "type": "string",
+      "description": "Ticket ID prefix (TE or CA)"
+    },
+    "domain": {
+      "type": "string",
+      "description": "Email domain for routing"
+    },
+    "support_email": {
+      "type": "string",
+      "description": "Support email address"
+    },
+    "branding_color": {
+      "type": "string",
+      "description": "Primary brand color hex code"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Organization logo URL"
+    },
+    "ticket_counter": {
+      "type": "number",
+      "default": 0,
+      "description": "Counter for generating ticket IDs"
+    },
+    "monthly_allocation_minutes": {
+      "type": "number",
+      "default": 120,
+      "description": "Monthly allocated time per client in minutes (default 2 hours)"
+    }
+  },
+  "required": [
+    "name",
+    "prefix"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "user_type": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "id": "{{user.organization_id}}"
+        },
+        {
+          "user_condition": {
+            "user_type": {
+              "$in": [
+                "agent",
+                "super_admin"
+              ]
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "user_type": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "user_type": "super_admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

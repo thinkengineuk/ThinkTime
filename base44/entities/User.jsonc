@@ -1,0 +1,28 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Organization the user belongs to"
+    },
+    "user_type": {
+      "type": "string",
+      "enum": [
+        "client",
+        "agent",
+        "super_admin"
+      ],
+      "description": "Type of user in the system"
+    },
+    "has_logged_in_before": {
+      "type": "boolean",
+      "default": false,
+      "description": "Tracks if user has logged in at least once"
+    }
+  },
+  "required": [
+    "organization_id",
+    "user_type"
+  ]
+}

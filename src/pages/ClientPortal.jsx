@@ -95,11 +95,18 @@ export default function ClientPortal() {
       });
       const displayId = ticketIdData.display_id;
 
-      // Auto-assign to karla@thinkengine.co
-      const userProfiles = await base44.entities.UserProfile.list();
-      const karlaProfile = userProfiles.find(p => p.email === "karla@thinkengine.co");
-      const assignedAgentEmail = "karla@thinkengine.co";
-      const assignedAgentName = karlaProfile?.display_full_name || karlaProfile?.full_name || "Karl Abbott";
+      // Auto-assign based on organisation
+      const isCogsOrg = organization.name?.toLowerCase() === "cogs ai";
+      let assignedAgentEmail, assignedAgentName;
+      if (isCogsOrg) {
+        assignedAgentEmail = "support@cogsai.co.uk";
+        assignedAgentName = "Cogs Support";
+      } else {
+        const userProfiles = await base44.entities.UserProfile.list();
+        const karlaProfile = userProfiles.find(p => p.email === "karla@thinkengine.co");
+        assignedAgentEmail = "karla@thinkengine.co";
+        assignedAgentName = karlaProfile?.display_full_name || karlaProfile?.full_name || "Karl Abbott";
+      }
 
       const ticketData = {
         subject: formData.subject,

@@ -1,0 +1,132 @@
+{
+  "name": "Announcement",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Announcement title"
+    },
+    "message": {
+      "type": "string",
+      "description": "Announcement description/content"
+    },
+    "link_url": {
+      "type": "string",
+      "description": "Optional link to blog post or details"
+    },
+    "link_text": {
+      "type": "string",
+      "description": "Text for the link button"
+    },
+    "target_audience": {
+      "type": "string",
+      "enum": [
+        "all",
+        "agents",
+        "clients"
+      ],
+      "default": "all",
+      "description": "Who should receive this announcement"
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the announcement has been sent"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the announcement was published"
+    },
+    "published_by": {
+      "type": "string",
+      "description": "Email of admin who published"
+    }
+  },
+  "required": [
+    "title",
+    "message",
+    "target_audience"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "user_type": "super_admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "user_type": "super_admin"
+          }
+        },
+        {
+          "data.is_published": true,
+          "data.target_audience": "all"
+        },
+        {
+          "data.is_published": true,
+          "data.target_audience": "agents",
+          "user_condition": {
+            "user_type": {
+              "$in": [
+                "agent",
+                "super_admin"
+              ]
+            }
+          }
+        },
+        {
+          "data.is_published": true,
+          "data.target_audience": "clients",
+          "user_condition": {
+            "user_type": "client"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "user_type": "super_admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "user_type": "super_admin"
+          }
+        }
+      ]
+    }
+  }
+}

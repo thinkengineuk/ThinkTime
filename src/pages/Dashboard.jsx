@@ -113,7 +113,7 @@ export default function Dashboard() {
       let assignedAgentName = formData.assigned_agent_name || null;
       
       if (!assignedAgentEmail || assignedAgentEmail === "") {
-        const isCogsOrg = org.name?.toLowerCase().includes("cogs");
+        const isCogsOrg = org.name?.toLowerCase() === "cogs ai";
         if (isCogsOrg) {
           assignedAgentEmail = "support@cogsai.co.uk";
           assignedAgentName = "Cogs Support";

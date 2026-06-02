@@ -1,0 +1,98 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of user who should receive the notification"
+    },
+    "ticket_id": {
+      "type": "string",
+      "description": "ID of the related ticket (optional, for ticket-related notifications)"
+    },
+    "ticket_display_id": {
+      "type": "string",
+      "description": "Display ID for reference (optional)"
+    },
+    "comment_id": {
+      "type": "string",
+      "description": "ID of the comment where they were mentioned (optional)"
+    },
+    "announcement_id": {
+      "type": "string",
+      "description": "ID of the announcement (for announcement notifications)"
+    },
+    "message": {
+      "type": "string",
+      "description": "Notification message snippet"
+    },
+    "title": {
+      "type": "string",
+      "description": "Notification title (for announcements)"
+    },
+    "mentioned_by_name": {
+      "type": "string",
+      "description": "Name of person who mentioned them"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether notification has been read"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "mention",
+        "reply",
+        "assignment",
+        "announcement"
+      ],
+      "default": "mention",
+      "description": "Type of notification"
+    }
+  },
+  "required": [
+    "user_email",
+    "message",
+    "type"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "user_type": {
+              "$in": [
+                "agent",
+                "super_admin"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "read": {
+      "data.user_email": "{{user.email}}"
+    },
+    "update": {
+      "data.user_email": "{{user.email}}"
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

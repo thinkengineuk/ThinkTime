@@ -1,0 +1,70 @@
+{
+  "name": "TimeLog",
+  "type": "object",
+  "properties": {
+    "ticket_id": {
+      "type": "string",
+      "description": "ID of the parent ticket"
+    },
+    "ticket_display_id": {
+      "type": "string",
+      "description": "Display ID for reference"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who logged time"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of the user who logged time"
+    },
+    "organization_id": {
+      "type": "string",
+      "description": "Organization ID for reporting"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Client email for reporting"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client name for reporting"
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When time tracking started"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When time tracking ended"
+    },
+    "suggested_minutes": {
+      "type": "number",
+      "description": "Auto-calculated minutes (e.g., 30 min minimum)"
+    },
+    "actual_minutes": {
+      "type": "number",
+      "description": "Actual time spent (can override suggested)"
+    },
+    "is_manually_edited": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the time was manually edited"
+    },
+    "edit_reason": {
+      "type": "string",
+      "description": "Reason for manual edit"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes about work performed"
+    }
+  },
+  "required": [
+    "ticket_id",
+    "user_email",
+    "organization_id"
+  ]
+}
