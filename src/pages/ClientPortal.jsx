@@ -122,7 +122,8 @@ export default function ClientPortal() {
         display_id: displayId,
         last_activity: new Date().toISOString(),
         status: "open",
-        attachments: formData.attachments || []
+        attachments: formData.attachments || [],
+        watchers: [{ email: "robert@thinkengine.co", name: "Robert Jones" }]
       };
 
       const newTicket = await base44.entities.Ticket.create(ticketData);
